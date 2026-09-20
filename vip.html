@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أبو تيم — مكتبة الأوامر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF;
+  --ink:#0A0A0A;
+  --muted:#6B6B6B;
+  --muted-2:#9A9A9A;
+  --line:#E4E4E4;
+  --line-strong:#0A0A0A;
+  --panel:#F6F6F6;
+  --maxw:760px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--ink);color:var(--bg);}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px;}
+
+/* ---------- SMOKE BACKGROUND ---------- */
+#smokeCanvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:1;
+  pointer-events:none;
+  display:block;
+}
+.landing, .results-section, .toast{position:relative;z-index:2;}
+
+/* ---------- LANDING ---------- */
+.landing{
+  min-height:78vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:40px 20px 30px;
+}
+.brand-title{
+  font-family:'Cairo',sans-serif;
+  font-weight:900;
+  font-size:clamp(40px,8vw,64px);
+  margin:0 0 6px;
+  letter-spacing:.01em;
+  color:var(--ink);
+}
+.brand-rule{
+  width:64px;height:3px;background:var(--ink);margin:14px auto 30px;
+}
+.search-shell{
+  width:100%;
+  max-width:560px;
+  position:relative;
+}
+.search-shell input{
+  width:100%;
+  border:2px solid var(--ink);
+  border-radius:999px;
+  padding:16px 54px 16px 22px;
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  font-size:16px;
+  color:var(--ink);
+  background:var(--bg);
+}
+.search-shell input::placeholder{color:var(--muted-2);}
+.search-shell input:focus{outline:none;}
+.search-shell .ico{
+  position:absolute;right:22px;top:50%;transform:translateY(-50%);
+  font-size:18px;color:var(--ink);pointer-events:none;
+}
+
+.bundle-row{
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+  margin-top:22px;max-width:620px;
+}
+.bundle-btn{
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  padding:11px 20px;
+  border-radius:999px;
+  border:1.5px solid var(--ink);
+  background:var(--bg);
+  color:var(--ink);
+  cursor:pointer;
+  transition:background .12s, color .12s;
+}
+.bundle-btn:hover{background:var(--ink);color:var(--bg);}
+.bundle-btn.active{background:var(--ink);color:var(--bg);}
+
+/* ---------- RESULTS ---------- */
+.results-section{display:none;border-top:1px solid var(--line);padding:26px 0 70px;}
+.results-section.show{display:block;}
+.result-meta{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  margin-bottom:6px;
+}
+.result-count{font-size:13px;color:var(--muted);}
+.bundle-actions{display:flex;gap:8px;}
+.chips{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding:12px 0 4px;scrollbar-width:thin;}
+.chips::-webkit-scrollbar{height:4px;}
+.chips::-webkit-scrollbar-thumb{background:var(--line);}
+.chip{
+  flex-shrink:0;
+  padding:6px 14px;border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--bg);color:var(--muted);
+  font-size:12.5px;cursor:pointer;white-space:nowrap;
+}
+.chip.active{border-color:var(--ink);color:var(--ink);background:var(--panel);}
+
+.cards{display:flex;flex-direction:column;gap:14px;margin-top:16px;}
+.card{
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:18px 20px;
+  background:var(--bg);
+  scroll-margin-top:24px;
+}
+.card.flash{border-color:var(--ink);}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.card-cat{
+  font-size:11px;color:var(--muted);
+  border:1px solid var(--line);
+  padding:3px 10px;border-radius:999px;white-space:nowrap;
+}
+.card h3{margin:2px 0 0;font-size:16px;font-weight:700;color:var(--ink);}
+.card h3.is-cmd{
+  font-family:'IBM Plex Mono',monospace;direction:ltr;text-align:right;font-size:14.5px;
+}
+.card .desc{font-size:13.5px;color:var(--muted);margin:6px 0 10px;white-space:pre-line;}
+.card pre{
+  direction:ltr;text-align:left;unicode-bidi:plaintext;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:14px 16px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12.6px;color:#1A1A1A;
+  white-space:pre-wrap;word-break:break-word;
+  max-height:280px;overflow-y:auto;margin:0 0 12px;line-height:1.65;
+}
+.card pre::-webkit-scrollbar{width:6px;}
+.card pre::-webkit-scrollbar-thumb{background:var(--line);}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  font-size:13px;padding:8px 15px;border-radius:7px;
+  border:1.5px solid var(--ink);background:var(--bg);color:var(--ink);cursor:pointer;
+}
+.btn:hover{background:var(--panel);}
+.btn.primary{background:var(--ink);color:var(--bg);}
+.btn.primary:hover{opacity:.85;}
+
+.empty{text-align:center;color:var(--muted-2);padding:50px 0;font-size:14px;}
+
+/* ---------- BEST BUNDLE PANEL ---------- */
+.best-bundle{display:none;border:2px solid var(--ink);border-radius:12px;padding:20px 22px;margin-bottom:26px;}
+.best-bundle.show{display:block;}
+.bb-title{margin:0 0 4px;font-size:17px;font-weight:700;}
+.bb-sub{margin:0 0 14px;font-size:12.5px;color:var(--muted);}
+.bb-steps{display:flex;flex-direction:column;}
+.bb-step{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+.bb-step:last-child{border-bottom:none;}
+.bb-step .bb-num{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);flex-shrink:0;}
+.bb-step .bb-cmd{font-family:'IBM Plex Mono',monospace;direction:ltr;unicode-bidi:embed;font-weight:600;}
+.bb-step .bb-cat{color:var(--muted);font-size:12px;}
+.bb-customize{display:none;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line);}
+.bb-customize.show{display:block;}
+.bb-hint{font-size:12.5px;color:var(--muted);margin:0 0 12px;}
+.bb-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
+.bb-field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;}
+.bb-field input{
+  width:100%;border:1px solid var(--line);border-radius:6px;
+  padding:8px 10px;font-family:inherit;font-size:13px;color:var(--ink);background:var(--bg);
+}
+.bb-field input:focus{outline:none;border-color:var(--ink);}
+.bb-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--bg);
+  padding:11px 20px;border-radius:8px;font-size:13.5px;
+  opacity:0;pointer-events:none;transition:all .25s;z-index:100;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:560px){
+  .bb-fields{grid-template-columns:1fr;}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<canvas id="smokeCanvas"></canvas>
+
+<div class="landing">
+  <h1 class="brand-title">أبو تيم</h1>
+  <div class="brand-rule"></div>
+  <div class="search-shell">
+    <input type="text" id="searchInput" placeholder="ابحث عن أمر، أو اكتب النتيجة التي تريد الوصول إليها...">
+    <span class="ico">⌕</span>
+  </div>
+  <div class="bundle-row">
+    <button class="bundle-btn" data-bundle="social">تجميعة منشورات فيسبوك وانستقرام</button>
+    <button class="bundle-btn" data-bundle="ads">تجميعة الإعلانات</button>
+    <button class="bundle-btn" data-bundle="video">تجميعة الفيديوهات</button>
+  </div>
+</div>
+
+<section class="results-section wrap" id="resultsSection">
+
+  <div class="best-bundle" id="bestBundle">
+    <h2 class="bb-title" id="bbTitle">أفضل تجميعة لنتيجتك</h2>
+    <p class="bb-sub" id="bbSub"></p>
+    <div class="bb-steps" id="bbSteps"></div>
+    <div class="bb-customize" id="bbCustomize">
+      <p class="bb-hint">جاوب على الأسئلة التالية (اختياري) ليتم تعديل نص الأوامر تلقائيًا حسب مشروعك قبل النسخ:</p>
+      <div class="bb-fields" id="bbFields"></div>
+    </div>
+    <div class="bb-actions">
+      <button class="btn primary" id="bbCopyBtn">نسخ التركيبة</button>
+      <button class="btn" id="bbClaudeBtn">افتح التركيبة مع Claude</button>
+    </div>
+  </div>
+
+  <div class="result-meta">
+    <span class="result-count" id="resultCount"></span>
+  </div>
+  <div class="chips" id="chipsRow"></div>
+  <div class="cards" id="cardsWrap"></div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script type="application/json" id="promptData">[{"id": "m1", "lib": "marketing", "category": "1. مرحلة الاستراتيجية وتحليل الجمهور المستهدف", "command": "1.1 بناء شخصيات العملاء المفصلة (Buyer Personas)", "description": "", "prompt": "أنت خبير استراتيجي أول في التسويق الرقمي وسلوك المستهلك. أريد منك بناء 3 شخصيات عملاء (Buyer Personas) مفصلة للغاية لمنتجنا/خدمتنا [أدخل اسم المنتج/الخدمة هنا] والتي تستهدف سوق [أدخل السوق الجغرافي أو الديموغرافي].\n\nيرجى تضمين العناصر التالية لكل شخصية:\n1. البيانات الديموغرافية الأساسية (العمر، الجنس، الدخل، الحالة الاجتماعية، الوظيفة).\n2. العوامل النفسية (القيم، الاهتمامات، نمط الحياة).\n3. الآلام والمشاكل العميقة (Pain Points) التي يحلها منتجنا.\n4. الدوافع والمحفزات الشرائية والأهداف الرئيسية.\n5. الاعتراضات الشائعة التي تمنعهم من الشراء وكيفية تجاوزها.\n6. المنصات الرقمية المفضلة وأنماط تصفحهم اليومية.\n\nقدم النتائج بأسلوب احترافي منظم في جدول ومقاطع تفصيلية قابلة للتنفيذ المباشر في استهداف إعلانات Meta."}, {"id": "m2", "lib": "marketing", "category": "1. مرحلة الاستراتيجية وتحليل الجمهور المستهدف", "command": "1.2 تحليل المنافسين واستخراج الفجوات (Competitor Gap Analysis)", "description": "", "prompt": "أنت محلل تنافسي واستراتيجي لمنصات التواصل الاجتماعي. أريد منك إجراء تحليل شامل لفجوات السوق بناءً على المنافسين التاليين في مجال [أدخل المجال]:\n- المنافس الأول: [رابط أو اسم المنافس]\n- المنافس الثاني: [رابط أو اسم المنافس]\n\nقم بتحليل النقاط التالية:\n1. استراتيجيات الإعلانات التي يستخدمونها حالياً على منصات Meta (أنواع الإعلانات، الزوايا التسويقية البارزة).\n2. نقاط القوة والضعف في رسائلهم التسويقية ورسوماتهم.\n3. فجوات السوق (Market Gaps) والفرص غير المستغلة التي يمكن لمنتجنا استغلالها للتفوق عليهم.\n4. اقتراح 3 زوايا إعلانية فريدة تميزنا عن هؤلاء المنافسين بشكل جذري."}, {"id": "m3", "lib": "marketing", "category": "2. مرحلة صياغة النصوص الإعلانية (Ad Copywriting & Messaging)", "command": "2.1 إطار عمل AIDA المتقدم لإعلانات Meta", "description": "", "prompt": "أنت خبير صياغة إعلانية (Direct Response Copywriter) محترف متخصص في إعلانات Facebook وInstagram. اكتب 3 نسخ إعلانية مختلفة باستخدام إطار عمل (AIDA: Attention, Interest, Desire, Action) لمنتجنا [أدخل اسم المنتج] الموجه نحو [أدخل الجمهور المستهدف].\n\nالشروط والضوابط:\n- العنوان الرئيسي (Headline): يجب أن يكون جذاباً، يثير الفضول، ولا يتجاوز 40 حرفاً.\n- النص الأساسي (Primary Text): ابدأ بخطاف (Hook) قوي جداً في السطر الأول، وتجنب الكليشيهات التسويقية المملة. استخدم لغة قريبة من لغة الجمهور (Tone of Voice: [أدخل النبرة المطلوبة، مثلاً: ودي، حماسي، احترافي]).\n- تضمين دعوة واضحة لاتخاذ إجراء (CTA) تتناسب مع هدف الحملة [تحديد الهدف: مبيعات، تسجيل، إلخ].\n- أضف مقترحات للرموز التعبيرية (Emojis) بشكل مدروس وغير مزعج."}, {"id": "m4", "lib": "marketing", "category": "2. مرحلة صياغة النصوص الإعلانية (Ad Copywriting & Messaging)", "command": "2.2 إطار عمل PAS (المشكلة، التحريض، الحل) للإعلانات عالية التحويل", "description": "", "prompt": "أنت كاتب محتوى إعلاني عالي الأداء. استخدم إطار عمل PAS (Problem, Agitation, Solution) لكتابة نص إعلاني لمنصة Meta يركز على حل مشكلة [أدخل المشكلة التي يعاني منها العميل] عبر منتجنا [أدخل المنتج].\n\nالهيكل المطلوب:\n1. المشكلة (Problem): طرح المشكلة بوضوح يستفز تفكير العميل منذ السطر الأول.\n2. التحريض (Agitation): تضخيم الألم الناتج عن عدم حل هذه المشكلة والآثار السلبية المترتبة عليها عاطفياً ومادياً.\n3. الحل (Solution): تقديم منتجنا كحل نهائي، سهل، وفعال مع إبراز الفوائد الرئيسية (Benefits) وليس فقط الميزات التقنية (Features).\n4. دعوة لاتخاذ إجراء قوية ومحفزة للشراء الفوري."}, {"id": "m5", "lib": "marketing", "category": "3. مرحلة التوجيه الإبداعي وتصميم الوسائط البصرية", "command": "3.1 توجيهات المناهج البصرية (Visual Creative Brief Generator)", "description": "", "prompt": "أنت مدير إبداعي (Creative Director) لوكالة تسويق رقمي كبرى. أريد منك تصميم موجز إبداعي (Creative Brief) متكامل لإنتاج 3 تصاميم مرئية (Images/Carousels) و2 سيناريو لفيديوهات قصيرة (Reels/UGC) لمنتجنا [أدخل المنتج].\n\nلكل تصميم/فيديو، حدد بوضوح:\n1. نوع الوسائط (صورة ثابتة، كاروسيل، فيديو UGC، موشن جرافيك).\n2. الفكرة البصرية المركزية (Visual Concept) والعناصر الظاهرة في الثواني الثلاث الأولى (الخطاف البصري).\n3. النص المدمج داخل الصورة أو الفيديو (Text Overlay) مع مكان وضعه بدقة.\n4. الحالة المزاجية، الألوان الطاغية، ونوع الإضاءة أو النمط الفني.\n5. الهدف النفسي من هذا الإبداع (ما الشعور الذي يجب أن ينتاب المشاهد؟)."}, {"id": "m6", "lib": "marketing", "category": "3. مرحلة التوجيه الإبداعي وتصميم الوسائط البصرية", "command": "3.2 هندسة أوامر توليد الصور بالذكاء الاصطناعي (AI Image Prompts for Midjourney/DALL-E)", "description": "", "prompt": "أنت خبير في هندسة الأوامر الخاصة بتوليد الصور الإعلانية عالية الجودة. قم بإنشاء 3 أوامر (Prompts) باللغة الإنجليزية لتوليد صور إعلانية عبر أدوات الذكاء الاصطناعي لمنتج [أدخل وصف المنتج]، بحيث تكون الصور ملائمة تماماً لإعلانات Instagram وFacebook.\n\nشروط الأوامر:\n- أن تكون واقعية وعالية الدقة (Photorealistic, commercial product photography).\n- إبراز المنتج بوضوح في بيئة استخدام طبيعية (Lifestyle context).\n- مراعاة نسب الأبعاد المطلوبة (مثلاً --ar 1:1 أو 9:16).\n- توضيح الإضاءة وزوايا التصوير الاحترافية بدقة."}, {"id": "m7", "lib": "marketing", "category": "4. مرحلة إعداد وهندسة هيكل الحملات على منصة Meta (Campaign Architecture)", "command": "4.1 تصميم هيكل الحملة الاحترافي (Campaign Structure & CBO/ABO Strategy)", "description": "", "prompt": "أنت خبير إعلامي مدفوع (Media Buyer) محترف ومعتمد من Meta. قم بتصميم هيكل كامل لحملة إعلانية مخصصة لـ [أدخل هدف الحملة: مبيعات e-commerce / توليد عملاء محتملين Leads / وعي بالعلامة التجارية] بميزانية شهرية تبلغ [أدخل الميزانية].\n\nقدم لي تفصيلاً كاملاً يتضمن:\n1. اختيار نوع الحملة والهدف الصحيح على مدير الإعلانات (Ads Manager).\n2. استراتيجية توزيع الميزانية (هل نستخدم CBO أم ABO ولماذا؟ وكيف يتم توزيع الحصص؟).\n3. هيكل المجموعات الإعلانية (Ad Sets): تفصيل الاستهداف (Broad, Lookalike, Interest-based stacking) مع استراتيجية استبعاد الجماهير السلبية (Exclusions).\n4. استراتيجية التنويع الإبداعي (Creative Testing Structure) لكل مجموعة إعلانية وكيفية هيكلة الإعلانات داخلها."}, {"id": "m8", "lib": "marketing", "category": "4. مرحلة إعداد وهندسة هيكل الحملات على منصة Meta (Campaign Architecture)", "command": "4.2 استراتيجيات الجماهير المخصصة وشبه المماثلة (Custom & Lookalike Audiences)", "description": "", "prompt": "أنت مهندس بيانات تسويقية وخبير تتبع على منصة Meta. أريد خطة متكاملة لبناء وهندسة الجماهير المخصصة (Custom Audiences) والجماهير شبه المماثلة (Lookalike Audiences - LAL) لمتجرنا الإلكتروني.\n\nوضح لي:\n1. مصادر البيانات المتاحة (Pixel, Conversions API, قائمة العملاء، التفاعل على الانستغرام/الفيسبوك، مشاهدات الفيديو).\n2. كيفية ترتيب وفلترة هذه الجماهير بناءً على زمني (أخر 7 أيام، 30 يوم، 180 يوم).\n3. نسب الجماهير شبه المماثلة المثلى للبدء والتوسع (1%, 2-5%, 6-10%) لكل مرحلة من مراحل القمع التسويقي (Funnel).\n4. إرشادات تقنية لتجنب التداخل الجماهيري (Audience Overlap) وضمان كفاءة مزاد الإعلانات."}, {"id": "m9", "lib": "marketing", "category": "5. مرحلة التحسين، اختبار A/B، وإدارة الميزانيات (Optimization & A/B Testing)", "command": "5.1 إطار عمل اختبار A/B المنهجي (A/B Testing Framework)", "description": "", "prompt": "أنت خبير تحسين معدلات التحويل (CRO) ومختبر حملات رقمية. صمم لي خطة اختبار A/B علمية وممنهجة لحملاتنا الحالية على Meta Ads بهدف خفض تكلفة الاستحواذ (CPA) وزيادة العائد على الإنفاق الإعلاني (ROAS).\n\nتتضمن الخطة:\n1. ما هي العناصر التي يجب اختبارها أولاً ولماذا؟ (هل نبدأ بالخطاف Hook، أم الجمهور، أم التصميم البصري، أم العنوان؟).\n2. تحديد المتغير الأساسي (Independent Variable) والثوابت لضمان دقة النتائج الإحصائية.\n3. المدة الزمنية المطلوبة لكل اختبار وحجم الإنفاق الأدنى المطلوب للوصول إلى الدلالة الإحصائية (Statistical Significance).\n4. معايير إيقاف الإعلانات الخاسرة وتوسيع نطاق الإعلانات الفائزة (Scaling Rules)."}, {"id": "m10", "lib": "marketing", "category": "5. مرحلة التحسين، اختبار A/B، وإدارة الميزانيات (Optimization & A/B Testing)", "command": "5.2 بروتوكول توسيع النطاق وإدارة الميزانيات (Budget Scaling Protocols)", "description": "", "prompt": "أنت مدير إعلانات أول (Senior Media Buyer). ضع لي دليلاً عملياً دقيقاً لقواعد رفع الميزانية وتوسيع النطاق (Scaling) لحملات ناجحة على Meta دون الإضرار بأداء الخوارزمية أو رفع تكلفة النقرة/التحويل.\n\nأجب عن النقاط التالية:\n1. متى يكون الوقت مناسباً لرفع الميزانية؟ (ما هي المؤشرات والأرقام التي يجب أن تتحقق أولاً مثل ROAS والاستقرار لفترة زمنية محددة).\n2. هل نستخدم الرفع العمودي (Vertical Scaling بزيادة النسبة المئوية تدريجياً) أم الرفع الأفقـي (Horizontal Scaling بإنشاء مجموعات جديدة)؟ ومتى نستخدم كل طريقة؟\n3. كيفية التعامل مع ظاهرة \"صدمة الميزانية\" (Budget Shock) وإعادة ضبط الخوارزمية عندما تتأثر الحملات سلباً بعد تعديل الميزانية."}, {"id": "m11", "lib": "marketing", "category": "6. مرحلة تحليل البيانات، التقارير، والذكاء التسويقي (Analytics & Reporting)", "command": "6.1 تحليل لوحة التحكم واستخراج المؤشرات الحرجة (Dashboard Diagnostics)", "description": "", "prompt": "أنت محلل بيانات تسويقية متقدم وخبير أداء إعلاني. لدي البيانات التالية لأداء حملة إعلانية على Meta خلال الـ 7 أيام الماضية:\n- الإنفاق الإجمالي: [أدخل الرقم]\n- عدد مرات الظهور (Impressions): [أدخل الرقم]\n- معدل النقر للظهور (CTR - Link): [أدخل النسبة]\n- تكلفة النقرة الواحدة (CPC): [أدخل المبلغ]\n- معدل التحويل (Conversion Rate): [أدخل النسبة]\n- تكلفة الاستحواذ / العميل المحتمل (CPA): [أدخل المبلغ]\n- العائد على الإنفاق الإعلاني (ROAS): [أدخل الرقم]\n\nقم بتشخيص الأداء الحالي بدقة:\n1. حدد نقاط الضعف الأساسية في قمع التسويق (هل المشكلة في الإبداع Creative؟ أم في صفحة الهبوط Landing Page؟ أم في الاستهداف؟).\n2. قدم 3 توصيات فورية وتكتيكية لإصلاح الخلل في الأداء خلال الـ 48 ساعة القادمة.\n3. حدد المقاييس الرئيسية (KPIs) التي يجب مراقبتها بدقة خلال مرحلة التصحيح."}, {"id": "m12", "lib": "marketing", "category": "6. مرحلة تحليل البيانات، التقارير، والذكاء التسويقي (Analytics & Reporting)", "command": "6.2 قالب تقرير الأداء التنفيذي الأسبوعي/الشهري (Executive Report Template)", "description": "", "prompt": "أنت مدير تسويق تنفيذي (CMO). صمم لي نموذج تقرير أداء تنفيذي احترافي، موجز، وموجه للإدارة العليا لعرض نتائج حملات Meta Ads الشهرية.\n\nيجب أن يحتوي التقرير على الأقسام التالية:\n1. الملخص التنفيذي (Executive Summary): أهم الإنجازات والأرقام الكلية بعبارات واضحة.\n2. المقاييس المالية الرئيسية مقابل المستهدفات (Spend, Revenue, ROAS, CPA, CPL).\n3. تحليل الأداء الإبداعي (أي الإعلانات حققت أعلى نجاح وأيها فشلت ولماذا؟).\n4. الدروس المستفادة وتحليل التحديات التي واجهت الحملة.\n5. خطة العمل والشنت القادم للشهر التالي (Action Plan for Next Month)."}, {"id": "v13", "lib": "visual", "category": "CORE PROMPT ENGINE", "command": "قالب أساسي لأي أمر بصري", "description": "", "prompt": "[COMMAND]\nUse the provided reference image as the primary source of truth.\n\nSUBJECT:\n[PRODUCT / PERSON / OBJECT]\n\nGOAL:\n[WHAT THE IMAGE MUST ACHIEVE]\n\nIDENTITY / PRODUCT LOCK:\nPreserve the exact identity, proportions, geometry, materials, colors, branding, packaging, logo placement and distinctive details of the reference.\nDo not redesign, replace, simplify or invent the core subject.\n\nCOMPOSITION:\n[FRAMING / CAMERA ANGLE / POSITION / NEGATIVE SPACE]\n\nENVIRONMENT:\n[LOCATION / BACKGROUND / SURFACE / PROPS]\n\nLIGHTING:\n[KEY LIGHT / FILL / RIM / DIRECTION / QUALITY]\n\nCAMERA:\n[SHOT TYPE / LENS / DEPTH OF FIELD / PERSPECTIVE]\n\nSTYLE:\n[COMMERCIAL / EDITORIAL / CINEMATIC / MINIMAL / LUXURY]\n\nCOLOR:\n[PALETTE]\n\nOUTPUT:\n[ASPECT RATIO / RESOLUTION / PLATFORM]\n\nQUALITY:\nPhotorealistic, physically plausible materials, natural shadows, realistic reflections, clean edges, premium commercial finish.\n\nAVOID:\nunwanted objects, distorted geometry, duplicated subjects, malformed hands, incorrect logos, gibberish text, watermarks, excessive artificial sharpness, plastic-looking materials, inconsistent lighting."}, {"id": "v14", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS", "description": "إنشاء إعلان احترافي مخصص لـ Facebook / Instagram.", "prompt": "/METAADS\nCreate a premium conversion-focused Meta advertising creative using the provided reference product.\nKeep the product identity completely accurate.\nBuild a strong visual hierarchy with one dominant hero subject, immediate benefit communication through visual storytelling, clean negative space for ad copy, premium commercial lighting, realistic materials, polished composition, scroll-stopping contrast, and mobile-first readability.\nLeave intentional text-safe space without generating fake text.\nOutput optimized for 4:5 vertical advertising composition."}, {"id": "v15", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_HERO", "description": "", "prompt": "/METAADS_HERO\nCreate a high-impact Meta Ads hero creative centered around the reference product.\nThe product must dominate the frame and remain perfectly recognizable.\nUse dramatic but realistic commercial lighting, controlled reflections, premium background styling, strong depth, subtle environmental storytelling and a clear focal point.\nReserve clean negative space for headline and CTA.\n4:5 vertical composition, premium advertising photography."}, {"id": "v16", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_PRODUCT", "description": "", "prompt": "/METAADS_PRODUCT\nTurn the reference product into a premium Meta advertising image.\nPreserve exact packaging, label, logo, shape, color and proportions.\nCreate an aspirational commercial environment that communicates the product's value without clutter.\nStudio-grade lighting, realistic shadow, refined reflections, sharp product detail, mobile-first composition, text-safe negative space."}, {"id": "v17", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_LUXURY", "description": "", "prompt": "/METAADS_LUXURY\nCreate a luxury Meta ad for the reference product.\nUse sophisticated materials, controlled highlights, deep dimensional shadows, premium editorial composition, restrained props, elegant negative space and cinematic studio lighting.\nThe product remains the unquestioned hero.\nLuxury campaign photography, photorealistic, premium brand aesthetic, 4:5."}, {"id": "v18", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_UGC", "description": "", "prompt": "/METAADS_UGC\nCreate an authentic UGC-style Meta advertising visual using the reference product.\nNatural human interaction, believable environment, imperfect-but-attractive framing, realistic smartphone photography feel, genuine lighting, relatable context and strong product visibility.\nAvoid polished studio perfection while retaining commercial quality."}, {"id": "v19", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_BEFOREAFTER", "description": "", "prompt": "/METAADS_BEFOREAFTER\nCreate a clean before-and-after advertising composition for the reference product/service.\nClearly separate BEFORE and AFTER visually without relying on generated text.\nMaintain realistic continuity, identical framing where appropriate, believable transformation and high visual contrast.\nCommercial social advertising aesthetic."}, {"id": "v20", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_PROBLEM", "description": "", "prompt": "/METAADS_PROBLEM\nCreate a problem-first advertising creative.\nVisually communicate the customer's pain point using a realistic scene, then position the reference product as the visual solution.\nStrong emotional storytelling, clear focal hierarchy, believable human context, premium advertising photography, clean text-safe areas."}, {"id": "v21", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_SOLUTION", "description": "", "prompt": "/METAADS_SOLUTION\nCreate a solution-focused Meta ad where the reference product is shown solving a real customer problem.\nMake the benefit visually obvious through action and context.\nPhotorealistic commercial scene, natural human interaction, controlled lighting, strong product visibility, mobile-first composition."}, {"id": "v22", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_TESTIMONIAL", "description": "", "prompt": "/METAADS_TESTIMONIAL\nCreate a testimonial-style advertising visual using the reference product.\nShow an authentic customer experience, natural expression, believable environment and product interaction.\nReserve clean space for testimonial copy.\nAvoid stock-photo appearance."}, {"id": "v23", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_OFFER", "description": "", "prompt": "/METAADS_OFFER\nCreate a high-conversion promotional Meta ad around the reference product.\nStrong visual urgency, premium product hero, clear focal hierarchy, controlled background, empty text-safe zones for price/discount/CTA, commercial lighting and mobile-first composition.\nDo not generate promotional text inside the image."}, {"id": "v24", "lib": "visual", "category": "META ADS / إعلانات ميتا", "command": "/METAADS_CAROUSEL", "description": "", "prompt": "/METAADS_CAROUSEL\nDesign a carousel-ready visual system for the reference product.\nCreate a consistent campaign language across multiple frames:\n1. Hero\n2. Problem\n3. Benefit\n4. Feature\n5. Social proof\n6. Offer\n7. CTA\nMaintain identical product identity, lighting language, color palette and brand aesthetic throughout."}, {"id": "v25", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT", "description": "", "prompt": "/PRODUCT\nCreate professional commercial product photography from the reference image.\nPreserve exact product identity.\nUse controlled studio lighting, realistic materials, accurate proportions, clean composition, premium retouching, natural shadows and professional camera perspective."}, {"id": "v26", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_HERO", "description": "", "prompt": "/PRODUCT_HERO\nCreate a premium hero product photograph.\nCentered or intentionally composed product, subtle environmental context, controlled key/fill/rim lighting, realistic reflections, crisp detail, elegant depth of field and commercial campaign quality."}, {"id": "v27", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_STUDIO", "description": "", "prompt": "/PRODUCT_STUDIO\nPlace the exact reference product in a professional studio.\nSeamless background, softbox key light, controlled fill, subtle rim light, accurate shadows, clean edges, realistic materials, catalog-quality photography."}, {"id": "v28", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_WHITE", "description": "", "prompt": "/PRODUCT_WHITE\nCreate an e-commerce product photograph on a clean seamless white background.\nPreserve exact product geometry and branding.\nSoft realistic grounding shadow, neutral lighting, accurate colors, sharp details, no unnecessary props."}, {"id": "v29", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_BLACK", "description": "", "prompt": "/PRODUCT_BLACK\nCreate a premium dark-background product photograph.\nUse deep black/charcoal environment, controlled rim lighting, precise highlights, realistic reflections and strong separation from the background.\nLuxury commercial photography."}, {"id": "v30", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_FLOAT", "description": "", "prompt": "/PRODUCT_FLOAT\nCreate a premium floating product composition.\nThe reference product appears suspended naturally with physically believable lighting, subtle shadowing, dimensional depth and elegant surrounding atmosphere.\nNo visible supports."}, {"id": "v31", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_MACRO", "description": "", "prompt": "/PRODUCT_MACRO\nCreate an extreme macro commercial photograph highlighting the finest material details of the reference product.\nMicro-texture, stitching, glass, metal, fabric or surface detail must remain physically realistic.\nMacro lens aesthetic, controlled highlights, shallow depth of field."}, {"id": "v32", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_DETAIL", "description": "", "prompt": "/PRODUCT_DETAIL\nCreate a detailed close-up focusing on one important product feature.\nPreserve material authenticity and exact geometry.\nUse directional light to reveal texture and premium craftsmanship."}, {"id": "v33", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_TOP", "description": "", "prompt": "/PRODUCT_TOP\nCreate a professional top-down product photograph.\nPerfect spatial organization, controlled shadows, balanced negative space, premium editorial styling and realistic materials."}, {"id": "v34", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_FLATLAY", "description": "", "prompt": "/PRODUCT_FLATLAY\nCreate an editorial flat-lay composition around the reference product.\nArrange complementary props with intentional spacing and hierarchy.\nTop-down camera, soft directional light, realistic shadows, premium commercial styling."}, {"id": "v35", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_45", "description": "", "prompt": "/PRODUCT_45\nCreate a classic 45-degree hero product photograph.\nNatural perspective, premium lighting, realistic depth, strong silhouette and elegant grounding shadow."}, {"id": "v36", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_LOW", "description": "", "prompt": "/PRODUCT_LOW\nCreate a low-angle hero photograph that makes the reference product feel powerful and premium.\nControlled perspective, dramatic but realistic lighting, strong foreground/background separation."}, {"id": "v37", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_SIDE", "description": "", "prompt": "/PRODUCT_SIDE\nCreate a clean side-profile product photograph.\nPreserve exact silhouette and proportions.\nUse directional studio lighting and a simple background."}, {"id": "v38", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_BACK", "description": "", "prompt": "/PRODUCT_BACK\nCreate a professional rear-view product photograph.\nShow the exact back design, construction and labeling of the reference.\nConsistent lighting and camera height."}, {"id": "v39", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_360", "description": "", "prompt": "/PRODUCT_360\nCreate a complete 360-degree product reference sheet.\nShow front, front-left 3/4, left, rear-left 3/4, back, rear-right 3/4, right and front-right 3/4.\nMaintain identical product identity, scale, proportions, materials, lighting and camera distance across every view.\nClean neutral studio background."}, {"id": "v40", "lib": "visual", "category": "PRODUCT PHOTOGRAPHY", "command": "/PRODUCT_CATALOG", "description": "", "prompt": "/PRODUCT_CATALOG\nCreate a catalog-ready product image system.\nNeutral background, consistent scale, exact product identity, standardized lighting, identical camera perspective and uniform margins.\nDesigned for a professional product catalog."}, {"id": "v41", "lib": "visual", "category": "E-COMMERCE", "command": "/ECOM", "description": "", "prompt": "/ECOM\nCreate a marketplace-ready product image.\nExact product preservation, clean background, realistic grounding shadow, accurate colors, crisp edges and professional commercial retouching."}, {"id": "v42", "lib": "visual", "category": "E-COMMERCE", "command": "/SHOPIFY", "description": "", "prompt": "/SHOPIFY\nCreate a premium Shopify product visual.\nClean hero product presentation, modern commercial styling, realistic materials, clear silhouette, balanced negative space and conversion-focused composition."}, {"id": "v43", "lib": "visual", "category": "E-COMMERCE", "command": "/AMAZON", "description": "", "prompt": "/AMAZON\nCreate a clean marketplace product image.\nProduct centered, unobstructed, accurate colors and geometry, pure/simple background, minimal distraction and professional catalog photography."}, {"id": "v44", "lib": "visual", "category": "E-COMMERCE", "command": "/ECOM_LIFESTYLE", "description": "", "prompt": "/ECOM_LIFESTYLE\nCreate a lifestyle e-commerce photograph showing the exact reference product naturally used in context.\nProduct remains the visual priority.\nRealistic environment, believable human interaction, commercial lighting."}, {"id": "v45", "lib": "visual", "category": "E-COMMERCE", "command": "/ECOM_FEATURES", "description": "", "prompt": "/ECOM_FEATURES\nCreate a product feature visual.\nShow the product with visual callout-safe areas for later graphic annotations.\nUse clean composition, close detail and consistent product identity.\nDo not generate text labels."}, {"id": "v46", "lib": "visual", "category": "LIFESTYLE", "command": "/LIFESTYLE", "description": "", "prompt": "/LIFESTYLE\nPlace the exact reference product in a believable lifestyle environment.\nNatural interaction, realistic props, environmental storytelling, authentic lighting and premium commercial photography."}, {"id": "v47", "lib": "visual", "category": "LIFESTYLE", "command": "/LIFESTYLE_HOME", "description": "", "prompt": "/LIFESTYLE_HOME\nShow the product naturally used inside a beautiful modern home.\nSoft window light, realistic textures, warm atmosphere, subtle depth of field and authentic human context."}, {"id": "v48", "lib": "visual", "category": "LIFESTYLE", "command": "/LIFESTYLE_OFFICE", "description": "", "prompt": "/LIFESTYLE_OFFICE\nPlace the reference product in a modern professional workspace.\nClean desk, realistic materials, natural daylight, sophisticated commercial styling."}, {"id": "v49", "lib": "visual", "category": "LIFESTYLE", "command": "/LIFESTYLE_OUTDOOR", "description": "", "prompt": "/LIFESTYLE_OUTDOOR\nCreate an outdoor lifestyle campaign around the reference product.\nNatural sunlight, realistic atmospheric depth, believable environment, premium editorial commercial photography."}, {"id": "v50", "lib": "visual", "category": "LIFESTYLE", "command": "/LIFESTYLE_CAFE", "description": "", "prompt": "/LIFESTYLE_CAFE\nCreate a sophisticated café lifestyle scene featuring the reference product.\nNatural human activity in the background, warm directional light, realistic surfaces and premium editorial photography."}, {"id": "v51", "lib": "visual", "category": "FASHION", "command": "/FASHION", "description": "", "prompt": "/FASHION\nCreate a premium fashion campaign using the reference garment/accessory.\nPreserve exact design, fabric, color and construction.\nEditorial styling, professional model photography, controlled lighting and luxury campaign composition."}, {"id": "v52", "lib": "visual", "category": "FASHION", "command": "/FASHION_EDITORIAL", "description": "", "prompt": "/FASHION_EDITORIAL\nCreate high-end fashion editorial photography.\nStrong pose, sophisticated styling, architectural composition, directional lighting, realistic fabric behavior and magazine-quality finish."}, {"id": "v53", "lib": "visual", "category": "FASHION", "command": "/FASHION_ECOM", "description": "", "prompt": "/FASHION_ECOM\nCreate a clean fashion e-commerce image.\nExact garment preservation, natural fit, neutral background, accurate fabric texture and professional catalog lighting."}, {"id": "v54", "lib": "visual", "category": "FASHION", "command": "/FASHION_STREET", "description": "", "prompt": "/FASHION_STREET\nCreate a realistic street-fashion campaign.\nAuthentic urban environment, natural movement, editorial composition, cinematic daylight and exact clothing preservation."}, {"id": "v55", "lib": "visual", "category": "FASHION", "command": "/FASHION_LOOKBOOK", "description": "", "prompt": "/FASHION_LOOKBOOK\nCreate a cohesive fashion lookbook image.\nMinimal background, consistent lighting, elegant model posture, exact clothing details and premium editorial styling."}, {"id": "v56", "lib": "visual", "category": "BEAUTY / COSMETICS", "command": "/BEAUTY", "description": "", "prompt": "/BEAUTY\nCreate a premium beauty campaign for the reference product.\nLuxury cosmetic photography, immaculate product detail, elegant skin/texture rendering, refined lighting and sophisticated composition."}, {"id": "v57", "lib": "visual", "category": "BEAUTY / COSMETICS", "command": "/SKINCARE", "description": "", "prompt": "/SKINCARE\nCreate a clean skincare advertising scene.\nReference product remains exact.\nFresh natural materials, water droplets where appropriate, soft diffused lighting, healthy premium atmosphere and realistic cosmetic photography."}, {"id": "v58", "lib": "visual", "category": "BEAUTY / COSMETICS", "command": "/MAKEUP", "description": "", "prompt": "/MAKEUP\nCreate a premium makeup campaign featuring the reference product.\nAccurate packaging and color, editorial beauty lighting, sophisticated styling and realistic skin/material detail."}, {"id": "v59", "lib": "visual", "category": "BEAUTY / COSMETICS", "command": "/PERFUME", "description": "", "prompt": "/PERFUME\nCreate a luxury fragrance advertising campaign using the exact reference bottle.\nPreserve bottle shape, cap, label and logo.\nElegant atmosphere, premium glass reflections, controlled highlights, sophisticated shadows, cinematic luxury styling."}, {"id": "v60", "lib": "visual", "category": "BEAUTY / COSMETICS", "command": "/PERFUME_GOLD", "description": "", "prompt": "/PERFUME_GOLD\nCreate a luxurious gold-accent fragrance campaign.\nExact reference bottle, warm metallic highlights, refined dark environment, subtle golden reflections, premium cinematic lighting."}, {"id": "v61", "lib": "visual", "category": "BEAUTY / COSMETICS", "command": "/PERFUME_ICE", "description": "", "prompt": "/PERFUME_ICE\nCreate a premium icy fragrance campaign.\nExact bottle identity, frosted atmosphere, crystalline surfaces, cool diffused light, realistic condensation and sophisticated luxury composition."}, {"id": "v62", "lib": "visual", "category": "FOOD", "command": "/FOOD", "description": "", "prompt": "/FOOD\nCreate professional commercial food photography.\nPhotorealistic ingredients, appetizing texture, realistic steam/moisture, controlled highlights, natural shadows and premium restaurant advertising composition."}, {"id": "v63", "lib": "visual", "category": "FOOD", "command": "/FOOD_HERO", "description": "", "prompt": "/FOOD_HERO\nCreate a hero food advertising photograph.\nThe dish is the dominant focal point.\nAppetizing texture, dramatic but realistic lighting, shallow depth of field and premium food styling."}, {"id": "v64", "lib": "visual", "category": "FOOD", "command": "/FOOD_TOP", "description": "", "prompt": "/FOOD_TOP\nCreate a professional overhead food composition.\nBalanced plate arrangement, complementary props, realistic textures and editorial restaurant photography."}, {"id": "v65", "lib": "visual", "category": "FOOD", "command": "/FOOD_ACTION", "description": "", "prompt": "/FOOD_ACTION\nCreate a dynamic food advertising scene with a believable action moment such as pouring, cutting, stretching, sprinkling or serving.\nFreeze the action naturally with realistic physics and commercial lighting."}, {"id": "v66", "lib": "visual", "category": "TECH / GADGETS", "command": "/TECH", "description": "", "prompt": "/TECH\nCreate a premium technology product campaign.\nPreserve exact device geometry, ports, buttons, materials and branding.\nModern architectural environment, controlled reflections, cinematic studio lighting and high-end commercial photography."}, {"id": "v67", "lib": "visual", "category": "TECH / GADGETS", "command": "/TECH_FUTURE", "description": "", "prompt": "/TECH_FUTURE\nPlace the exact reference device in a sophisticated futuristic environment.\nMinimal architecture, subtle technology elements, controlled neon accents, realistic materials and cinematic lighting.\nAvoid sci-fi clutter."}, {"id": "v68", "lib": "visual", "category": "TECH / GADGETS", "command": "/TECH_MINIMAL", "description": "", "prompt": "/TECH_MINIMAL\nCreate a minimalist technology hero shot.\nClean geometric background, soft directional lighting, exact product preservation and premium modern commercial aesthetic."}, {"id": "v69", "lib": "visual", "category": "JEWELRY / LUXURY", "command": "/JEWELRY", "description": "", "prompt": "/JEWELRY\nCreate high-end jewelry photography using the exact reference piece.\nPreserve stone count, setting, metal geometry and proportions.\nMacro detail, controlled sparkle, realistic reflections, luxury studio lighting and premium editorial finish."}, {"id": "v70", "lib": "visual", "category": "JEWELRY / LUXURY", "command": "/JEWELRY_MACRO", "description": "", "prompt": "/JEWELRY_MACRO\nExtreme macro jewelry photograph.\nShow precise craftsmanship, gemstone facets, metal texture and micro-reflections.\nProfessional macro lens aesthetic, controlled highlights, luxury advertising quality."}, {"id": "v71", "lib": "visual", "category": "JEWELRY / LUXURY", "command": "/JEWELRY_BLACK", "description": "", "prompt": "/JEWELRY_BLACK\nLuxury jewelry on a deep dark background.\nExact jewelry preservation, dramatic rim light, controlled specular highlights, realistic gemstone reflections and sophisticated composition."}, {"id": "v72", "lib": "visual", "category": "REAL ESTATE / ARCHITECTURE", "command": "/REALSTATE", "description": "", "prompt": "/REALSTATE\nCreate premium real-estate photography from the reference property.\nPreserve architectural geometry.\nCorrect verticals, realistic exposure, natural window light, balanced dynamic range and professional property photography."}, {"id": "v73", "lib": "visual", "category": "REAL ESTATE / ARCHITECTURE", "command": "/ARCH", "description": "", "prompt": "/ARCH\nCreate an architectural editorial photograph.\nExact structural geometry, realistic materials, intentional perspective, sophisticated natural light and high-end architecture photography."}, {"id": "v74", "lib": "visual", "category": "REAL ESTATE / ARCHITECTURE", "command": "/INTERIOR", "description": "", "prompt": "/INTERIOR\nCreate a premium interior photograph.\nPreserve room architecture and major furniture placement.\nNatural window light, balanced exposure, realistic materials, clean composition and architectural photography."}, {"id": "v75", "lib": "visual", "category": "REAL ESTATE / ARCHITECTURE", "command": "/EXTERIOR", "description": "", "prompt": "/EXTERIOR\nCreate a premium exterior property photograph.\nAccurate architecture, realistic landscaping, natural atmospheric perspective and professional real-estate lighting."}, {"id": "v76", "lib": "visual", "category": "PEOPLE / PORTRAITS", "command": "/PORTRAIT", "description": "", "prompt": "/PORTRAIT\nCreate a professional portrait from the reference image.\nPreserve exact identity, facial structure, hairstyle, skin tone, age characteristics and distinctive facial features.\nNatural skin texture, professional lighting, realistic lens perspective."}, {"id": "v77", "lib": "visual", "category": "PEOPLE / PORTRAITS", "command": "/PORTRAIT_STUDIO", "description": "", "prompt": "/PORTRAIT_STUDIO\nCreate a premium studio portrait.\nExact identity preservation, soft key light, subtle fill, controlled rim light, realistic skin texture and professional headshot composition."}, {"id": "v78", "lib": "visual", "category": "PEOPLE / PORTRAITS", "command": "/PORTRAIT_CINEMATIC", "description": "", "prompt": "/PORTRAIT_CINEMATIC\nCreate a cinematic portrait using the exact reference person.\nPreserve identity completely.\nDramatic directional lighting, realistic skin, cinematic color grading, natural depth of field."}, {"id": "v79", "lib": "visual", "category": "PEOPLE / PORTRAITS", "command": "/PORTRAIT_LINKEDIN", "description": "", "prompt": "/PORTRAIT_LINKEDIN\nCreate a professional corporate headshot.\nPreserve exact identity.\nClean background, flattering but realistic lighting, professional wardrobe and approachable executive presence."}, {"id": "v80", "lib": "visual", "category": "PEOPLE / PORTRAITS", "command": "/PORTRAIT_EDITORIAL", "description": "", "prompt": "/PORTRAIT_EDITORIAL\nCreate sophisticated editorial portrait photography.\nExact identity preservation, intentional pose, magazine-style lighting, refined composition and realistic skin texture."}, {"id": "v81", "lib": "visual", "category": "360 / MULTI-ANGLE", "command": "/360VIEW", "description": "", "prompt": "/360VIEW\nSame subject, same identity, same clothes, same hairstyle, same facial features, same environment.\nGenerate a complete 360-degree reference sheet showing front, 3/4 front, left profile, left rear 3/4, back, right rear 3/4, right profile and right 3/4 views.\nMaintain exact identity and consistent proportions across every angle.\nProfessional photography, realistic lighting, sharp details, high resolution."}, {"id": "v82", "lib": "visual", "category": "360 / MULTI-ANGLE", "command": "/360PRODUCT", "description": "", "prompt": "/360PRODUCT\nGenerate a complete 360-degree product reference sheet.\nFront, front-left 3/4, left, rear-left 3/4, back, rear-right 3/4, right and front-right 3/4.\nExact product geometry, scale, branding, materials and lighting must remain consistent."}, {"id": "v83", "lib": "visual", "category": "360 / MULTI-ANGLE", "command": "/MULTIVIEW", "description": "", "prompt": "/MULTIVIEW\nGenerate multiple camera views of the same subject while preserving identity and geometry.\nUse consistent lighting, scale, environment and proportions."}, {"id": "v84", "lib": "visual", "category": "TOP VIEW / زاوية علوية", "command": "/TOPVIEW", "description": "", "prompt": "/TOPVIEW\nConvert the scene into a professional top-down photograph.\nMaintain exact subject identity and proportions.\nOrganize surrounding elements intentionally with clean spacing, balanced composition and soft directional shadows."}, {"id": "v85", "lib": "visual", "category": "TOP VIEW / زاوية علوية", "command": "/TOPVIEW_PRODUCT", "description": "", "prompt": "/TOPVIEW_PRODUCT\nProfessional overhead product photography.\nExact product identity, carefully arranged props, clean visual hierarchy, realistic shadows and premium editorial styling."}, {"id": "v86", "lib": "visual", "category": "TOP VIEW / زاوية علوية", "command": "/TOPVIEW_FOOD", "description": "", "prompt": "/TOPVIEW_FOOD\nProfessional overhead food photography.\nPerfect composition, realistic ingredients, appetizing texture, balanced props and natural directional shadows."}, {"id": "v87", "lib": "visual", "category": "CAMERA / CINEMATOGRAPHY", "command": "/CAMERA", "description": "", "prompt": "/CAMERA\nRebuild the scene as if photographed by a professional commercial photographer.\nSpecify realistic camera position, focal length, aperture, depth of field, perspective, shutter behavior and lighting."}, {"id": "v88", "lib": "visual", "category": "CAMERA / CINEMATOGRAPHY", "command": "/WIDE", "description": "", "prompt": "/WIDE\nUse a wide-angle commercial composition while preserving realistic proportions.\nStrong environmental storytelling, controlled perspective and professional architectural depth."}, {"id": "v89", "lib": "visual", "category": "CAMERA / CINEMATOGRAPHY", "command": "/TELEPHOTO", "description": "", "prompt": "/TELEPHOTO\nUse a compressed telephoto perspective.\nNatural subject isolation, elegant background compression, realistic depth and premium editorial photography."}, {"id": "v90", "lib": "visual", "category": "CAMERA / CINEMATOGRAPHY", "command": "/MACRO", "description": "", "prompt": "/MACRO\nUse a professional macro photography perspective.\nReveal fine material details while maintaining realistic focus falloff and physically plausible lighting."}, {"id": "v91", "lib": "visual", "category": "CAMERA / CINEMATOGRAPHY", "command": "/DOF", "description": "", "prompt": "/DOF\nCreate sophisticated shallow depth of field.\nKeep the primary subject critically sharp while producing natural optical background blur."}, {"id": "v92", "lib": "visual", "category": "LIGHTING", "command": "/LIGHT", "description": "", "prompt": "/LIGHT\nRebuild the lighting as professional commercial photography.\nDefine key light, fill light, rim light, direction, softness, intensity and shadow behavior."}, {"id": "v93", "lib": "visual", "category": "LIGHTING", "command": "/SOFTLIGHT", "description": "", "prompt": "/SOFTLIGHT\nUse large diffused softbox/window lighting.\nSoft transitions, controlled highlights, subtle shadows, realistic skin/product rendering."}, {"id": "v94", "lib": "visual", "category": "LIGHTING", "command": "/DRAMATICLIGHT", "description": "", "prompt": "/DRAMATICLIGHT\nUse cinematic directional lighting with strong but realistic contrast.\nMaintain detail in highlights and shadows."}, {"id": "v95", "lib": "visual", "category": "LIGHTING", "command": "/GOLDENHOUR", "description": "", "prompt": "/GOLDENHOUR\nUse realistic golden-hour sunlight.\nWarm directional light, long soft shadows, natural atmospheric depth and premium lifestyle photography."}, {"id": "v96", "lib": "visual", "category": "LIGHTING", "command": "/WINDOWLIGHT", "description": "", "prompt": "/WINDOWLIGHT\nUse soft natural window light from a clearly defined direction.\nRealistic falloff, soft shadows and believable indoor exposure."}, {"id": "v97", "lib": "visual", "category": "LIGHTING", "command": "/RIMLIGHT", "description": "", "prompt": "/RIMLIGHT\nAdd a controlled rim light that separates the subject from the background.\nPreserve natural material response and avoid artificial glowing edges."}, {"id": "v98", "lib": "visual", "category": "LIGHTING", "command": "/NEON", "description": "", "prompt": "/NEON\nUse restrained cinematic neon lighting.\nColored practical lights may influence the environment, but the product's true identity and materials must remain accurate."}, {"id": "v99", "lib": "visual", "category": "BACKGROUNDS", "command": "/BACKGROUND", "description": "", "prompt": "/BACKGROUND\nReplace the environment with a premium background while preserving the exact subject.\nMatch lighting direction, perspective, reflections and contact shadows so the composite appears photographed in one real scene."}, {"id": "v100", "lib": "visual", "category": "BACKGROUNDS", "command": "/WHITEBG", "description": "", "prompt": "/WHITEBG\nPlace the exact subject on a seamless clean white background.\nNatural grounding shadow, accurate color and no visible horizon."}, {"id": "v101", "lib": "visual", "category": "BACKGROUNDS", "command": "/DARKBG", "description": "", "prompt": "/DARKBG\nPlace the exact subject in a premium dark charcoal environment.\nControlled separation, realistic reflections and sophisticated cinematic depth."}, {"id": "v102", "lib": "visual", "category": "BACKGROUNDS", "command": "/GRADIENTBG", "description": "", "prompt": "/GRADIENTBG\nCreate a clean premium gradient background using [COLOR 1] to [COLOR 2].\nSubject remains exact and sharply separated."}, {"id": "v103", "lib": "visual", "category": "BACKGROUNDS", "command": "/MARBLE", "description": "", "prompt": "/MARBLE\nPlace the exact product on premium marble.\nRealistic stone texture, subtle reflections, natural contact shadow and luxury commercial lighting."}, {"id": "v104", "lib": "visual", "category": "BACKGROUNDS", "command": "/CONCRETE", "description": "", "prompt": "/CONCRETE\nPlace the exact product on refined architectural concrete.\nMinimal editorial styling, realistic texture and controlled directional light."}, {"id": "v105", "lib": "visual", "category": "BACKGROUNDS", "command": "/WOOD", "description": "", "prompt": "/WOOD\nPlace the product on premium natural wood.\nRealistic grain, warm material response and lifestyle-commercial lighting."}, {"id": "v106", "lib": "visual", "category": "BRANDING / BRAND KIT", "command": "/BRANDKIT", "description": "", "prompt": "/BRANDKIT\nCreate a premium brand kit presentation board.\nInclude primary logo, secondary logo, icon, color palette, typography pairing, brand pattern, packaging mockup, stationery and social media application.\nUse a clean professional editorial grid and consistent brand identity."}, {"id": "v107", "lib": "visual", "category": "BRANDING / BRAND KIT", "command": "/BRANDBOARD", "description": "", "prompt": "/BRANDBOARD\nCreate a professional visual identity presentation board.\nShow logo system, typography, colors, graphic elements, mockups and brand applications.\nLuxury branding studio presentation."}, {"id": "v108", "lib": "visual", "category": "BRANDING / BRAND KIT", "command": "/LOGO_PRESENTATION", "description": "", "prompt": "/LOGO_PRESENTATION\nPresent the reference logo professionally on a clean branding presentation board.\nShow primary version, monochrome version, icon, spacing concept and realistic applications.\nDo not redesign the logo."}, {"id": "v109", "lib": "visual", "category": "BRANDING / BRAND KIT", "command": "/PACKAGING", "description": "", "prompt": "/PACKAGING\nApply the exact brand identity to premium packaging mockups.\nPreserve logo geometry, colors, typography and hierarchy.\nRealistic materials, print behavior, shadows and commercial product photography."}, {"id": "v110", "lib": "visual", "category": "SOCIAL MEDIA", "command": "/SOCIAL", "description": "", "prompt": "/SOCIAL\nCreate a premium social-media creative for [PLATFORM].\nUse the reference brand/product and maintain visual identity.\nStrong focal point, mobile-first hierarchy, clean negative space and scroll-stopping composition."}, {"id": "v111", "lib": "visual", "category": "SOCIAL MEDIA", "command": "/INSTAGRAM", "description": "", "prompt": "/INSTAGRAM\nCreate a premium Instagram post using the reference product/brand.\nEditorial composition, strong visual hook, mobile-first readability and text-safe areas."}, {"id": "v112", "lib": "visual", "category": "SOCIAL MEDIA", "command": "/INSTAGRAM_STORY", "description": "", "prompt": "/INSTAGRAM_STORY\nCreate a 9:16 vertical Instagram Story creative.\nStrong top-to-bottom hierarchy, subject centered in safe area, generous text-safe zones and premium commercial photography."}, {"id": "v113", "lib": "visual", "category": "SOCIAL MEDIA", "command": "/REEL_COVER", "description": "", "prompt": "/REEL_COVER\nCreate a high-impact Instagram Reel cover.\nLarge recognizable subject, strong contrast, simple composition, safe central framing and clean text-safe space."}, {"id": "v114", "lib": "visual", "category": "SOCIAL MEDIA", "command": "/TIKTOK", "description": "", "prompt": "/TIKTOK\nCreate a TikTok-first advertising visual.\nAuthentic, energetic, mobile-first composition, strong visual hook, realistic environment and immediate product recognition."}, {"id": "v115", "lib": "visual", "category": "SOCIAL MEDIA", "command": "/LINKEDIN", "description": "", "prompt": "/LINKEDIN\nCreate a professional LinkedIn visual.\nClean corporate composition, sophisticated color treatment, strong subject hierarchy and premium business aesthetic."}, {"id": "v116", "lib": "visual", "category": "POSTER / BILLBOARD / PRINT", "command": "/POSTER", "description": "", "prompt": "/POSTER\nCreate a premium advertising poster.\nStrong hero image, clear hierarchy, intentional negative space for headline/body/CTA, brand-consistent palette and print-quality composition.\nDo not generate text unless explicitly requested."}, {"id": "v117", "lib": "visual", "category": "POSTER / BILLBOARD / PRINT", "command": "/BILLBOARD", "description": "", "prompt": "/BILLBOARD\nCreate an outdoor billboard concept.\nExtremely simple visual hierarchy, instantly recognizable subject, high-distance readability, strong contrast and large negative space for later typography."}, {"id": "v118", "lib": "visual", "category": "POSTER / BILLBOARD / PRINT", "command": "/ROLLUP", "description": "", "prompt": "/ROLLUP\nCreate a vertical roll-up banner design.\nStrong top-to-bottom hierarchy, large hero visual, clean branding zone and CTA-safe area."}, {"id": "v119", "lib": "visual", "category": "POSTER / BILLBOARD / PRINT", "command": "/FLYER", "description": "", "prompt": "/FLYER\nCreate a professional promotional flyer visual.\nClear hierarchy, premium imagery, organized composition, balanced whitespace and strong commercial presentation."}, {"id": "v120", "lib": "visual", "category": "CAMPAIGN CONCEPTS", "command": "/CAMPAIGN", "description": "", "prompt": "/CAMPAIGN\nDevelop a complete visual campaign around the reference brand/product.\nCreate a consistent art direction including hero image, lifestyle image, detail image, promotional image, social visual and alternate campaign angle.\nKeep lighting, color palette and product identity consistent."}, {"id": "v121", "lib": "visual", "category": "CAMPAIGN CONCEPTS", "command": "/CAMPAIGN_LUXURY", "description": "", "prompt": "/CAMPAIGN_LUXURY\nCreate a luxury campaign system.\nEditorial art direction, sophisticated materials, cinematic lighting, restrained props, premium negative space and consistent brand identity."}, {"id": "v122", "lib": "visual", "category": "CAMPAIGN CONCEPTS", "command": "/CAMPAIGN_SEASONAL", "description": "", "prompt": "/CAMPAIGN_SEASONAL\nCreate a seasonal campaign for [SEASON/EVENT].\nIntegrate seasonal environmental cues without overpowering the reference product.\nMaintain premium commercial identity."}, {"id": "v123", "lib": "visual", "category": "CAMPAIGN CONCEPTS", "command": "/CAMPAIGN_RAMADAN", "description": "", "prompt": "/CAMPAIGN_RAMADAN\nCreate a sophisticated Ramadan commercial campaign.\nUse culturally appropriate elegant atmosphere, refined lighting, premium materials and subtle seasonal cues.\nKeep the product as hero."}, {"id": "v124", "lib": "visual", "category": "CAMPAIGN CONCEPTS", "command": "/CAMPAIGN_EID", "description": "", "prompt": "/CAMPAIGN_EID\nCreate a premium Eid advertising visual.\nElegant celebratory atmosphere, refined decorative elements, sophisticated lighting and exact product preservation.\nAvoid visual clutter."}, {"id": "v125", "lib": "visual", "category": "ACTION / DYNAMIC PRODUCT", "command": "/ACTION", "description": "", "prompt": "/ACTION\nCreate a dynamic commercial scene around the reference product.\nShow believable physical action, realistic motion cues, controlled composition and premium advertising photography."}, {"id": "v126", "lib": "visual", "category": "ACTION / DYNAMIC PRODUCT", "command": "/SPLASH", "description": "", "prompt": "/SPLASH\nCreate a high-speed commercial splash photograph around the reference product.\nFreeze realistic water droplets and fluid physics.\nProduct remains perfectly recognizable.\nProfessional high-speed photography."}, {"id": "v127", "lib": "visual", "category": "ACTION / DYNAMIC PRODUCT", "command": "/SMOKE", "description": "", "prompt": "/SMOKE\nCreate a cinematic product scene with controlled atmospheric smoke.\nSmoke must interact naturally with light and remain secondary to the product."}, {"id": "v128", "lib": "visual", "category": "ACTION / DYNAMIC PRODUCT", "command": "/DUST", "description": "", "prompt": "/DUST\nCreate a dramatic product scene with subtle floating particles/dust.\nUse backlighting to reveal atmosphere while preserving product clarity."}, {"id": "v129", "lib": "visual", "category": "ACTION / DYNAMIC PRODUCT", "command": "/EXPLOSION", "description": "", "prompt": "/EXPLOSION\nCreate a stylized but physically believable dynamic burst around the reference product.\nUse controlled particles and debris that support the concept without obscuring the product."}, {"id": "v130", "lib": "visual", "category": "ACTION / DYNAMIC PRODUCT", "command": "/FREEZE", "description": "", "prompt": "/FREEZE\nFreeze a high-speed action moment around the reference subject.\nRealistic physics, crisp motion capture, controlled lighting and commercial photography."}, {"id": "v131", "lib": "visual", "category": "PREMIUM STYLES", "command": "/LUXURY", "description": "", "prompt": "/LUXURY\nTransform the scene into a high-end luxury campaign.\nSophisticated materials, restrained composition, controlled highlights, cinematic depth and premium editorial art direction."}, {"id": "v132", "lib": "visual", "category": "PREMIUM STYLES", "command": "/MINIMAL", "description": "", "prompt": "/MINIMAL\nCreate an ultra-clean minimalist composition.\nOne hero subject, few supporting elements, generous negative space, precise geometry and soft premium lighting."}, {"id": "v133", "lib": "visual", "category": "PREMIUM STYLES", "command": "/EDITORIAL", "description": "", "prompt": "/EDITORIAL\nCreate a magazine-quality editorial photograph.\nStrong art direction, intentional composition, sophisticated lighting and premium visual storytelling."}, {"id": "v134", "lib": "visual", "category": "PREMIUM STYLES", "command": "/CINEMATIC", "description": "", "prompt": "/CINEMATIC\nCreate a cinematic commercial frame.\nNatural perspective, controlled contrast, realistic atmospheric depth, directional lighting and filmic visual storytelling."}, {"id": "v135", "lib": "visual", "category": "PREMIUM STYLES", "command": "/PHOTOREAL", "description": "", "prompt": "/PHOTOREAL\nMaximize photographic realism.\nPhysically plausible lighting, authentic textures, natural imperfections, realistic reflections and optical depth."}, {"id": "v136", "lib": "visual", "category": "PREMIUM STYLES", "command": "/HYPERREAL", "description": "", "prompt": "/HYPERREAL\nCreate an exceptionally detailed photorealistic commercial image.\nPrioritize believable material behavior, fine texture, accurate geometry and realistic optical rendering."}, {"id": "v137", "lib": "visual", "category": "IMAGE EDITING", "command": "/EDIT", "description": "", "prompt": "/EDIT\nEdit the provided image while preserving all unchanged elements.\nOnly modify: [REQUESTED CHANGE].\nMaintain identity, geometry, lighting logic, perspective, materials and image quality."}, {"id": "v138", "lib": "visual", "category": "IMAGE EDITING", "command": "/RETOUCH", "description": "", "prompt": "/RETOUCH\nProfessionally retouch the image.\nImprove exposure, contrast, color balance, skin/material realism and distracting imperfections while preserving natural appearance and identity."}, {"id": "v139", "lib": "visual", "category": "IMAGE EDITING", "command": "/UPSCALE", "description": "", "prompt": "/UPSCALE\nIncrease apparent resolution and detail while preserving exact identity, geometry, texture and composition.\nDo not invent new product features."}, {"id": "v140", "lib": "visual", "category": "IMAGE EDITING", "command": "/SHARPEN", "description": "", "prompt": "/SHARPEN\nImprove perceived sharpness naturally.\nPreserve realistic texture and avoid halos, oversharpening or artificial clarity."}, {"id": "v141", "lib": "visual", "category": "IMAGE EDITING", "command": "/COLOR", "description": "", "prompt": "/COLOR\nRecolor only [TARGET].\nPreserve shape, texture, lighting and all other elements exactly.\nUse physically realistic color response."}, {"id": "v142", "lib": "visual", "category": "IMAGE EDITING", "command": "/BACKGROUND_REMOVE", "description": "", "prompt": "/BACKGROUND_REMOVE\nIsolate the exact subject cleanly.\nPreserve fine edges, transparency boundaries, hair/fur/product contours and all original subject details."}, {"id": "v143", "lib": "visual", "category": "IMAGE EDITING", "command": "/OBJECT_REMOVE", "description": "", "prompt": "/OBJECT_REMOVE\nRemove [OBJECT] from the image and reconstruct the background naturally.\nPreserve lighting, texture, perspective and all surrounding objects."}, {"id": "v144", "lib": "visual", "category": "IMAGE EDITING", "command": "/OBJECT_ADD", "description": "", "prompt": "/OBJECT_ADD\nAdd [OBJECT] to the scene.\nMatch scale, perspective, lighting, shadows, reflections and depth of field so it appears naturally photographed in the original environment."}, {"id": "v145", "lib": "visual", "category": "CONSISTENCY / CHARACTER LOCK", "command": "/IDENTITYLOCK", "description": "", "prompt": "/IDENTITYLOCK\nUse the reference image as the absolute identity source.\nPreserve face structure, eyes, nose, mouth, jawline, hairstyle, skin characteristics, body proportions and distinctive features.\nDo not beautify into a different person."}, {"id": "v146", "lib": "visual", "category": "CONSISTENCY / CHARACTER LOCK", "command": "/CHARACTERLOCK", "description": "", "prompt": "/CHARACTERLOCK\nMaintain the exact same character across every generated image.\nKeep face, hair, body proportions, wardrobe, accessories, age and visual identity consistent."}, {"id": "v147", "lib": "visual", "category": "CONSISTENCY / CHARACTER LOCK", "command": "/OUTFITLOCK", "description": "", "prompt": "/OUTFITLOCK\nPreserve the exact outfit, colors, fabric, accessories and styling from the reference.\nNo wardrobe redesign."}, {"id": "v148", "lib": "visual", "category": "CONSISTENCY / CHARACTER LOCK", "command": "/ENVIRONMENTLOCK", "description": "", "prompt": "/ENVIRONMENTLOCK\nPreserve the exact environment and major spatial relationships.\nOnly change the requested element."}, {"id": "v149", "lib": "visual", "category": "CONSISTENCY / CHARACTER LOCK", "command": "/PRODUCTLOCK", "description": "", "prompt": "/PRODUCTLOCK\nThe provided product image is the source of truth.\nDo not redesign the product.\nPreserve exact geometry, packaging, label, logo, materials, colors, proportions and distinctive details."}, {"id": "v150", "lib": "visual", "category": "CONSISTENT SERIES", "command": "/SERIES", "description": "", "prompt": "/SERIES\nCreate a coherent visual series.\nMaintain the same subject identity, brand language, camera language, lighting direction, color palette, material behavior and quality level across every image."}, {"id": "v151", "lib": "visual", "category": "CONSISTENT SERIES", "command": "/SERIES_PRODUCT", "description": "", "prompt": "/SERIES_PRODUCT\nGenerate a complete product content series:\n1. White background\n2. Hero\n3. 45-degree\n4. Macro detail\n5. Lifestyle\n6. Top view\n7. Luxury\n8. Promotional\n9. Social media\n10. E-commerce\nMaintain exact product identity across all."}, {"id": "v152", "lib": "visual", "category": "CONSISTENT SERIES", "command": "/SERIES_SOCIAL", "description": "", "prompt": "/SERIES_SOCIAL\nCreate 10 visually consistent social creatives for the same campaign.\nUse identical brand language, product identity, palette, lighting family and art direction."}, {"id": "v153", "lib": "visual", "category": "NEGATIVE / QUALITY CONTROL", "command": "/NEGATIVE", "description": "", "prompt": "/NEGATIVE\nAvoid:\nincorrect anatomy, duplicate objects, extra limbs, malformed hands, warped packaging, incorrect logos, misspelled text, fake labels, inconsistent perspective, impossible reflections, floating objects, plastic skin, excessive HDR, oversharpening, noisy backgrounds, watermarks."}, {"id": "v154", "lib": "visual", "category": "NEGATIVE / QUALITY CONTROL", "command": "/QC", "description": "", "prompt": "/QC\nPerform a visual quality-control pass before finalizing.\nCheck:\n1. Identity accuracy\n2. Product geometry\n3. Logo/label integrity\n4. Perspective\n5. Lighting consistency\n6. Shadows\n7. Reflections\n8. Materials\n9. Anatomy\n10. Background cleanliness\n11. Composition\n12. Commercial usability"}, {"id": "v155", "lib": "visual", "category": "NEGATIVE / QUALITY CONTROL", "command": "/REALISM", "description": "", "prompt": "/REALISM\nIncrease physical realism without changing the composition.\nCorrect material response, contact shadows, reflections, perspective, depth of field, skin texture and light falloff."}, {"id": "v156", "lib": "visual", "category": "TYPOGRAPHY / TEXT-SAFE", "command": "/TEXTSAFE", "description": "", "prompt": "/TEXTSAFE\nCreate the image with deliberate negative space for later typography.\nDo not generate text.\nKeep important visual elements away from the designated text area."}, {"id": "v157", "lib": "visual", "category": "TYPOGRAPHY / TEXT-SAFE", "command": "/HEADLINE_SAFE", "description": "", "prompt": "/HEADLINE_SAFE\nReserve a clean high-contrast area suitable for a large advertising headline.\nKeep background visually quiet in that region."}, {"id": "v158", "lib": "visual", "category": "TYPOGRAPHY / TEXT-SAFE", "command": "/CTA_SAFE", "description": "", "prompt": "/CTA_SAFE\nReserve clean space for a CTA button or promotional element.\nDo not place important product details in the CTA area."}, {"id": "v159", "lib": "visual", "category": "COLOR SYSTEM", "command": "/COLORGRADE", "description": "", "prompt": "/COLORGRADE\nApply a professional commercial color grade using:\nPrimary: [COLOR]\nSecondary: [COLOR]\nAccent: [COLOR]\nMaintain realistic skin tones/material colors and coherent tonal hierarchy."}, {"id": "v160", "lib": "visual", "category": "COLOR SYSTEM", "command": "/BLACKGOLD", "description": "", "prompt": "/BLACKGOLD\nUse a premium black-and-gold art direction.\nBlack/charcoal environment, restrained metallic gold accents, controlled highlights and luxury campaign lighting."}, {"id": "v161", "lib": "visual", "category": "COLOR SYSTEM", "command": "/GREEN", "description": "", "prompt": "/GREEN\nUse a sophisticated green brand environment.\nPreserve product colors while integrating deep green, neutral and subtle metallic accents."}, {"id": "v162", "lib": "visual", "category": "COLOR SYSTEM", "command": "/MAROON", "description": "", "prompt": "/MAROON\nUse an elegant maroon/burgundy commercial palette.\nDeep rich tones, premium contrast, restrained highlights and sophisticated lighting."}, {"id": "v163", "lib": "visual", "category": "MOCKUPS", "command": "/MOCKUP", "description": "", "prompt": "/MOCKUP\nCreate a realistic professional mockup using the reference design.\nPreserve exact logo/artwork proportions.\nMatch printing, material texture, perspective, shadows and reflections."}, {"id": "v164", "lib": "visual", "category": "MOCKUPS", "command": "/PHONE_MOCKUP", "description": "", "prompt": "/PHONE_MOCKUP\nPlace the reference digital design into a realistic premium smartphone mockup.\nAccurate screen perspective, reflections, glass, device materials and studio lighting."}, {"id": "v165", "lib": "visual", "category": "MOCKUPS", "command": "/BILLBOARD_MOCKUP", "description": "", "prompt": "/BILLBOARD_MOCKUP\nPlace the reference artwork on a realistic outdoor billboard.\nCorrect perspective, environmental lighting, surface material and believable scale."}, {"id": "v166", "lib": "visual", "category": "MOCKUPS", "command": "/PACKAGING_MOCKUP", "description": "", "prompt": "/PACKAGING_MOCKUP\nApply the reference brand artwork to realistic packaging.\nPreserve exact logo, colors and hierarchy.\nShow accurate print texture, folds, reflections and material behavior."}, {"id": "v167", "lib": "visual", "category": "AD CREATIVE TESTING / A-B TEST", "command": "/ABTEST", "description": "", "prompt": "/ABTEST\nCreate 5 distinct advertising visual concepts for the same product:\nA. Product hero\nB. Problem-solution\nC. Lifestyle\nD. Luxury\nE. UGC\nKeep product identity constant while changing the creative angle."}, {"id": "v168", "lib": "visual", "category": "AD CREATIVE TESTING / A-B TEST", "command": "/HOOKTEST", "description": "", "prompt": "/HOOKTEST\nGenerate 10 visually different scroll-stopping creative concepts for the same product.\nEach concept should communicate a different visual hook while preserving exact product identity."}, {"id": "v169", "lib": "visual", "category": "AD CREATIVE TESTING / A-B TEST", "command": "/VARIATIONS", "description": "", "prompt": "/VARIATIONS\nGenerate multiple creative variations while changing only:\n[CAMERA / BACKGROUND / LIGHTING / PROP / MOOD].\nKeep the product and brand identity unchanged."}, {"id": "v170", "lib": "visual", "category": "VIDEO / IMAGE-TO-VIDEO", "command": "/VIDEO", "description": "", "prompt": "/VIDEO\nAnimate the provided reference image into a realistic commercial video.\nPreserve subject identity and product geometry.\nUse subtle physically believable camera movement, natural object motion, realistic lighting changes and cinematic depth.\nNo morphing or redesign."}, {"id": "v171", "lib": "visual", "category": "VIDEO / IMAGE-TO-VIDEO", "command": "/VIDEO_PRODUCT", "description": "", "prompt": "/VIDEO_PRODUCT\nCreate a premium product advertisement video from the reference image.\nSlow controlled camera push-in, subtle parallax, realistic reflections, gentle environmental movement and hero-product focus."}, {"id": "v172", "lib": "visual", "category": "VIDEO / IMAGE-TO-VIDEO", "command": "/VIDEO_ROTATE", "description": "", "prompt": "/VIDEO_ROTATE\nCreate a controlled product rotation video.\nThe exact product rotates smoothly around its vertical axis.\nPreserve geometry, logo, label and materials throughout."}, {"id": "v173", "lib": "visual", "category": "VIDEO / IMAGE-TO-VIDEO", "command": "/VIDEO_ORBIT", "description": "", "prompt": "/VIDEO_ORBIT\nCreate a cinematic camera orbit around the exact reference product.\nProduct remains stationary while the camera moves smoothly.\nConsistent lighting, reflections and realistic perspective."}, {"id": "v174", "lib": "visual", "category": "VIDEO / IMAGE-TO-VIDEO", "command": "/VIDEO_HANDHELD", "description": "", "prompt": "/VIDEO_HANDHELD\nCreate an authentic handheld commercial video.\nSubtle natural camera movement, realistic focus behavior and believable human interaction.\nAvoid excessive shake."}, {"id": "v175", "lib": "visual", "category": "VIDEO / IMAGE-TO-VIDEO", "command": "/VIDEO_CINEMATIC", "description": "", "prompt": "/VIDEO_CINEMATIC\nCreate a cinematic commercial sequence.\nControlled camera movement, realistic motion blur, shallow depth of field, atmospheric depth and premium lighting."}, {"id": "v176", "lib": "visual", "category": "VIDEO / IMAGE-TO-VIDEO", "command": "/VIDEO_UGC", "description": "", "prompt": "/VIDEO_UGC\nCreate a natural UGC-style product video.\nBelievable smartphone camera behavior, authentic human interaction, casual environment, realistic lighting and product clarity."}, {"id": "v177", "lib": "visual", "category": "VIDEO / IMAGE-TO-VIDEO", "command": "/VIDEO_UNBOXING", "description": "", "prompt": "/VIDEO_UNBOXING\nCreate a realistic product unboxing sequence.\nHands open the exact reference packaging naturally.\nPreserve packaging identity and product details."}, {"id": "v178", "lib": "visual", "category": "SHOT LISTS", "command": "/SHOTLIST", "description": "", "prompt": "/SHOTLIST\nCreate a professional commercial shot list for the reference product:\n1. Establishing shot\n2. Hero shot\n3. 45-degree\n4. Macro detail\n5. Lifestyle\n6. Human interaction\n7. Feature detail\n8. Promotional frame\n9. Closing hero"}, {"id": "v179", "lib": "visual", "category": "SHOT LISTS", "command": "/CINEMATIC_SHOTLIST", "description": "", "prompt": "/CINEMATIC_SHOTLIST\nBuild a cinematic 8-shot sequence around the reference product.\nFor each shot specify:\ncamera angle, lens, movement, lighting, subject action, environment and transition logic."}, {"id": "v180", "lib": "visual", "category": "STORYTELLING", "command": "/STORY", "description": "", "prompt": "/STORY\nBuild a visual story around the reference product:\nProblem → Discovery → Interaction → Transformation → Result.\nKeep the product identity consistent and visually central."}, {"id": "v181", "lib": "visual", "category": "STORYTELLING", "command": "/TRANSFORMATION", "description": "", "prompt": "/TRANSFORMATION\nCreate a visual transformation narrative.\nThe before state communicates the problem; the after state communicates the desired result.\nUse consistent framing and believable visual continuity."}, {"id": "v182", "lib": "visual", "category": "STORYTELLING", "command": "/EMOTION", "description": "", "prompt": "/EMOTION\nCreate a commercial image designed to communicate [EMOTION].\nUse facial expression, lighting, environment, composition and color psychology while keeping the product identity exact."}, {"id": "v183", "lib": "visual", "category": "SPECIAL ANGLES", "command": "/DUTCH", "description": "", "prompt": "/DUTCH\nUse a controlled Dutch angle for visual tension.\nKeep product geometry realistic and avoid excessive distortion."}, {"id": "v184", "lib": "visual", "category": "SPECIAL ANGLES", "command": "/LOWKEY", "description": "", "prompt": "/LOWKEY\nCreate a low-key cinematic photograph with deep shadows and controlled highlights.\nMaintain important subject detail."}, {"id": "v185", "lib": "visual", "category": "SPECIAL ANGLES", "command": "/HIGHKEY", "description": "", "prompt": "/HIGHKEY\nCreate a bright high-key commercial photograph.\nSoft shadows, clean whites, low visual clutter and premium e-commerce/editorial finish."}, {"id": "v186", "lib": "visual", "category": "SPECIAL ANGLES", "command": "/REFLECTION", "description": "", "prompt": "/REFLECTION\nCreate a premium reflective-surface product shot.\nRealistic reflection matching the exact geometry, lighting and perspective of the product."}, {"id": "v187", "lib": "visual", "category": "SPECIAL ANGLES", "command": "/GLASS", "description": "", "prompt": "/GLASS\nCreate realistic glass product photography.\nAccurate transparency, refraction, highlights, reflections and contact shadows."}, {"id": "v188", "lib": "visual", "category": "MATERIALS", "command": "/METAL", "description": "", "prompt": "/METAL\nEnhance realistic metal material behavior.\nAccurate roughness, specular highlights, reflections and micro-surface texture."}, {"id": "v189", "lib": "visual", "category": "MATERIALS", "command": "/LEATHER", "description": "", "prompt": "/LEATHER\nCreate realistic premium leather texture.\nNatural grain, subtle imperfections, stitching detail and believable light response."}, {"id": "v190", "lib": "visual", "category": "MATERIALS", "command": "/FABRIC", "description": "", "prompt": "/FABRIC\nPreserve realistic fabric weave, folds, thickness, seams and natural light interaction."}, {"id": "v191", "lib": "visual", "category": "MATERIALS", "command": "/WOOD", "description": "", "prompt": "/WOOD\nCreate realistic wood grain, pores, subtle imperfections and natural directional texture."}, {"id": "v192", "lib": "visual", "category": "MATERIALS", "command": "/CERAMIC", "description": "", "prompt": "/CERAMIC\nCreate realistic ceramic material.\nAccurate glaze, subtle imperfections, reflections and natural surface behavior."}, {"id": "v193", "lib": "visual", "category": "SPECIAL EFFECTS", "command": "/GLOW", "description": "", "prompt": "/GLOW\nAdd a subtle premium glow around [TARGET].\nGlow must interact naturally with the environment and never obscure the subject."}, {"id": "v194", "lib": "visual", "category": "SPECIAL EFFECTS", "command": "/LIGHTTRAIL", "description": "", "prompt": "/LIGHTTRAIL\nAdd elegant long-exposure light trails around the scene.\nMaintain the exact subject and realistic exposure behavior."}, {"id": "v195", "lib": "visual", "category": "SPECIAL EFFECTS", "command": "/SPARK", "description": "", "prompt": "/SPARK\nAdd subtle realistic sparks as a controlled visual effect.\nUse physically plausible light interaction."}, {"id": "v196", "lib": "visual", "category": "SPECIAL EFFECTS", "command": "/WATER", "description": "", "prompt": "/WATER\nCreate a premium water-based commercial scene.\nRealistic droplets, refraction, reflections and fluid physics."}, {"id": "v197", "lib": "visual", "category": "SPECIAL EFFECTS", "command": "/ICE", "description": "", "prompt": "/ICE\nCreate a sophisticated icy visual environment.\nRealistic frost, crystalline structures, condensation and cool light."}, {"id": "v198", "lib": "visual", "category": "CLEANUP", "command": "/CLEAN", "description": "", "prompt": "/CLEAN\nClean the image professionally.\nRemove distractions, visual noise and accidental artifacts while preserving all intentional design elements."}, {"id": "v199", "lib": "visual", "category": "CLEANUP", "command": "/DECLUTTER", "description": "", "prompt": "/DECLUTTER\nReduce unnecessary background objects and props.\nKeep the visual story intact and strengthen the primary focal point."}, {"id": "v200", "lib": "visual", "category": "CLEANUP", "command": "/ALIGN", "description": "", "prompt": "/ALIGN\nCorrect composition and visual alignment while preserving the original subject.\nStraighten perspective where appropriate and improve balance."}, {"id": "v201", "lib": "visual", "category": "CREATIVE DIRECTOR MODE", "command": "/ARTDIRECTOR", "description": "", "prompt": "/ARTDIRECTOR\nAct as a senior commercial art director.\nAnalyze the reference product, target audience, brand positioning and campaign goal.\nThen construct the strongest visual direction including:\nsubject hierarchy, camera, lighting, background, props, color, mood, negative space and platform format.\nPrioritize commercial effectiveness over decorative complexity."}, {"id": "v202", "lib": "visual", "category": "CREATIVE DIRECTOR MODE", "command": "/CREATIVE_DIRECTOR", "description": "", "prompt": "/CREATIVE_DIRECTOR\nThink like a creative director at a global advertising agency.\nCreate a distinctive campaign visual with one clear concept, one dominant visual idea and strong brand memory.\nAvoid generic stock-photo aesthetics."}, {"id": "v203", "lib": "visual", "category": "CREATIVE DIRECTOR MODE", "command": "/PHOTOGRAPHER", "description": "", "prompt": "/PHOTOGRAPHER\nAct as a senior commercial photographer.\nDetermine camera position, lens, aperture, lighting setup, surface, background, styling and post-production needed to make the reference product look professionally photographed."}, {"id": "v204", "lib": "visual", "category": "AD STRATEGY PROMPTS", "command": "/ADCONCEPT", "description": "", "prompt": "/ADCONCEPT\nGenerate 10 advertising concepts for [PRODUCT].\nFor each provide:\n1. Big idea\n2. Visual hook\n3. Scene\n4. Camera\n5. Lighting\n6. Emotional trigger\n7. CTA space\n8. Recommended platform"}, {"id": "v205", "lib": "visual", "category": "AD STRATEGY PROMPTS", "command": "/CREATIVE_MATRIX", "description": "", "prompt": "/CREATIVE_MATRIX\nBuild a creative testing matrix using:\nAudience × Problem × Promise × Visual Hook × Format × CTA.\nGenerate multiple combinations suitable for paid social advertising."}, {"id": "v206", "lib": "visual", "category": "AD STRATEGY PROMPTS", "command": "/HOOKS", "description": "", "prompt": "/HOOKS\nGenerate 30 visual hooks for advertising [PRODUCT].\nHooks must be instantly understandable without relying on text."}, {"id": "v207", "lib": "visual", "category": "AD STRATEGY PROMPTS", "command": "/SCROLLSTOP", "description": "", "prompt": "/SCROLLSTOP\nCreate a scroll-stopping visual concept.\nThe first visual impression must be unusual, high-contrast or emotionally compelling while remaining relevant to the product."}, {"id": "v208", "lib": "visual", "category": "PRODUCT-SPECIFIC MASTER PROMPTS", "command": "/PERFUME_AD", "description": "", "prompt": "/PERFUME_AD\nUse the exact reference perfume bottle.\nCreate a premium fragrance advertisement with sophisticated cinematic lighting, controlled glass reflections, realistic liquid appearance, elegant surface, atmospheric depth and luxury editorial styling.\nReserve clean space for headline and CTA."}, {"id": "v209", "lib": "visual", "category": "PRODUCT-SPECIFIC MASTER PROMPTS", "command": "/WATCH_AD", "description": "", "prompt": "/WATCH_AD\nUse the exact reference watch.\nCreate a luxury horology campaign with macro craftsmanship detail, controlled metal reflections, realistic crystal/glass behavior, sophisticated dark environment and dramatic rim lighting."}, {"id": "v210", "lib": "visual", "category": "PRODUCT-SPECIFIC MASTER PROMPTS", "command": "/SHOES_AD", "description": "", "prompt": "/SHOES_AD\nUse the exact reference footwear.\nCreate a dynamic premium fashion advertisement.\nPreserve exact silhouette, materials, colors and sole construction.\nUse realistic environmental interaction and commercial lighting."}, {"id": "v211", "lib": "visual", "category": "PRODUCT-SPECIFIC MASTER PROMPTS", "command": "/CLOTHING_AD", "description": "", "prompt": "/CLOTHING_AD\nUse the exact reference garment.\nCreate a premium fashion campaign showing accurate fabric behavior, stitching, fit, color and construction.\nEditorial lighting and sophisticated composition."}, {"id": "v212", "lib": "visual", "category": "PRODUCT-SPECIFIC MASTER PROMPTS", "command": "/COSMETIC_AD", "description": "", "prompt": "/COSMETIC_AD\nUse the exact reference cosmetic package.\nCreate a premium beauty campaign with realistic packaging, clean surfaces, sophisticated lighting, subtle cosmetic props and luxury editorial styling."}, {"id": "v213", "lib": "visual", "category": "PRODUCT-SPECIFIC MASTER PROMPTS", "command": "/FOOD_AD", "description": "", "prompt": "/FOOD_AD\nCreate a conversion-focused food advertisement.\nMake the food immediately appetizing through realistic texture, moisture, steam, controlled highlights, premium styling and strong hero composition."}, {"id": "v214", "lib": "visual", "category": "PRODUCT-SPECIFIC MASTER PROMPTS", "command": "/RESTAURANT_AD", "description": "", "prompt": "/RESTAURANT_AD\nCreate a premium restaurant advertisement.\nShow the dish/product in an aspirational but believable dining environment.\nUse cinematic food lighting and strong appetite appeal."}, {"id": "v215", "lib": "visual", "category": "LOGO / IDENTITY COMMANDS", "command": "/LOGO", "description": "", "prompt": "/LOGO\nCreate a professional logo concept for [BRAND].\nFocus on memorability, simplicity, scalability, distinctive silhouette and brand relevance.\nProvide multiple visual directions."}, {"id": "v216", "lib": "visual", "category": "LOGO / IDENTITY COMMANDS", "command": "/LOGO_MINIMAL", "description": "", "prompt": "/LOGO_MINIMAL\nCreate a minimal scalable logo concept.\nSimple geometry, strong silhouette, professional negative space and excellent performance at small sizes."}, {"id": "v217", "lib": "visual", "category": "LOGO / IDENTITY COMMANDS", "command": "/LOGO_LUXURY", "description": "", "prompt": "/LOGO_LUXURY\nCreate a premium luxury logo direction.\nElegant typography, refined geometry, sophisticated proportions and timeless visual character."}, {"id": "v218", "lib": "visual", "category": "LOGO / IDENTITY COMMANDS", "command": "/LOGO_ICON", "description": "", "prompt": "/LOGO_ICON\nCreate a standalone brand icon derived from the core identity.\nSimple, recognizable, scalable and suitable for app/social/favicon use."}, {"id": "v219", "lib": "visual", "category": "DESIGN REVIEW", "command": "/REVIEW", "description": "", "prompt": "/REVIEW\nCritically review the provided design as a senior art director.\nEvaluate:\ncomposition, hierarchy, typography, color, contrast, spacing, brand consistency, visual balance, commercial impact and technical quality.\nGive a score out of 10 and specific improvements.\nDo not flatter."}, {"id": "v220", "lib": "visual", "category": "DESIGN REVIEW", "command": "/BRANDREVIEW", "description": "", "prompt": "/BRANDREVIEW\nAudit the visual identity against professional branding standards.\nEvaluate distinctiveness, memorability, scalability, typography, color system, applications and consistency."}, {"id": "v221", "lib": "visual", "category": "DESIGN REVIEW", "command": "/ADREVIEW", "description": "", "prompt": "/ADREVIEW\nAudit this advertising creative for conversion potential.\nEvaluate visual hook, product prominence, message clarity, audience relevance, trust, CTA visibility, mobile readability and differentiation."}, {"id": "v222", "lib": "visual", "category": "MASTER WORKFLOW COMMANDS", "command": "/START", "description": "", "prompt": "/START\nAnalyze the provided project/reference.\nIdentify:\n1. Objective\n2. Subject\n3. Audience\n4. Brand\n5. Visual style\n6. Platform\n7. Required format\n8. Risks\n9. Best creative direction\nThen produce the strongest production-ready prompt."}, {"id": "v223", "lib": "visual", "category": "MASTER WORKFLOW COMMANDS", "command": "/PRO", "description": "", "prompt": "/PRO\nUpgrade the current prompt to professional commercial production quality.\nAdd precise composition, camera, lens, lighting, material behavior, environment, color, negative space and quality controls.\nDo not change the core concept."}, {"id": "v224", "lib": "visual", "category": "MASTER WORKFLOW COMMANDS", "command": "/MASTER", "description": "", "prompt": "/MASTER\nAct as a senior creative director, commercial photographer, advertising strategist and AI prompt engineer simultaneously.\nAnalyze the reference and create the strongest possible production-ready visual prompt.\nPrioritize identity accuracy, commercial usability, composition, realism and brand consistency."}, {"id": "v225", "lib": "visual", "category": "MASTER WORKFLOW COMMANDS", "command": "/OPTIMIZE", "description": "", "prompt": "/OPTIMIZE\nOptimize the provided prompt for maximum visual consistency and instruction clarity.\nRemove vague adjectives and replace them with concrete visual instructions.\nPreserve the original objective."}, {"id": "v226", "lib": "visual", "category": "MASTER WORKFLOW COMMANDS", "command": "/VARIATION", "description": "", "prompt": "/VARIATION\nCreate 10 distinct variations of the current visual concept.\nChange one major creative variable per variation while preserving subject identity and brand consistency."}, {"id": "v227", "lib": "visual", "category": "MASTER WORKFLOW COMMANDS", "command": "/FINAL", "description": "", "prompt": "/FINAL\nPrepare the final production prompt.\nInclude exact subject preservation, composition, environment, camera, lighting, color, mood, negative space, aspect ratio and quality controls.\nReturn one clean copy-ready prompt."}, {"id": "v228", "lib": "visual", "category": "FORMAT COMMANDS", "command": "/SQUARE", "description": "", "prompt": "/SQUARE\nOptimize composition for a 1:1 square social-media format."}, {"id": "v229", "lib": "visual", "category": "FORMAT COMMANDS", "command": "/PORTRAIT4X5", "description": "", "prompt": "/PORTRAIT4X5\nOptimize composition for 4:5 vertical advertising.\nKeep the main subject inside safe margins."}, {"id": "v230", "lib": "visual", "category": "FORMAT COMMANDS", "command": "/VERTICAL9X16", "description": "", "prompt": "/VERTICAL9X16\nOptimize composition for 9:16 vertical Stories/Reels/TikTok.\nRespect central safe zones and top/bottom UI areas."}, {"id": "v231", "lib": "visual", "category": "FORMAT COMMANDS", "command": "/LANDSCAPE16X9", "description": "", "prompt": "/LANDSCAPE16X9\nOptimize composition for 16:9 landscape.\nUse cinematic environmental storytelling and balanced horizontal negative space."}, {"id": "v232", "lib": "visual", "category": "FORMAT COMMANDS", "command": "/A4", "description": "", "prompt": "/A4\nOptimize composition for A4 print.\nMaintain professional margins, hierarchy and print-friendly visual balance."}, {"id": "v233", "lib": "visual", "category": "COMBINATION EXAMPLES", "command": "/METAADS + /PRODUCT_HERO + /LUXURY + /TEXTSAFE", "description": "مثال دمج جاهز رقم 1 — سلسلة أوامر تُستخدم معًا في طلب واحد.", "prompt": "/METAADS + /PRODUCT_HERO + /LUXURY + /TEXTSAFE"}, {"id": "v234", "lib": "visual", "category": "COMBINATION EXAMPLES", "command": "/PERFUME_AD + /BLACKGOLD + /MACRO + /METAADS", "description": "مثال دمج جاهز رقم 2 — سلسلة أوامر تُستخدم معًا في طلب واحد.", "prompt": "/PERFUME_AD + /BLACKGOLD + /MACRO + /METAADS"}, {"id": "v235", "lib": "visual", "category": "COMBINATION EXAMPLES", "command": "/360PRODUCT + /PRODUCTLOCK + /CATALOG", "description": "مثال دمج جاهز رقم 3 — سلسلة أوامر تُستخدم معًا في طلب واحد.", "prompt": "/360PRODUCT + /PRODUCTLOCK + /CATALOG"}, {"id": "v236", "lib": "visual", "category": "COMBINATION EXAMPLES", "command": "/FASHION + /EDITORIAL + /GOLDENHOUR + /INSTAGRAM", "description": "مثال دمج جاهز رقم 4 — سلسلة أوامر تُستخدم معًا في طلب واحد.", "prompt": "/FASHION + /EDITORIAL + /GOLDENHOUR + /INSTAGRAM"}, {"id": "v237", "lib": "visual", "category": "COMBINATION EXAMPLES", "command": "/BRANDKIT + /BRANDBOARD + /MOCKUP", "description": "مثال دمج جاهز رقم 5 — سلسلة أوامر تُستخدم معًا في طلب واحد.", "prompt": "/BRANDKIT + /BRANDBOARD + /MOCKUP"}, {"id": "v238", "lib": "visual", "category": "COMBINATION EXAMPLES", "command": "/VIDEO_PRODUCT + /VIDEO_ORBIT + /CINEMATIC", "description": "مثال دمج جاهز رقم 6 — سلسلة أوامر تُستخدم معًا في طلب واحد.", "prompt": "/VIDEO_PRODUCT + /VIDEO_ORBIT + /CINEMATIC"}, {"id": "v239", "lib": "visual", "category": "COMBINATION EXAMPLES", "command": "/ADCONCEPT + /HOOKS + /CREATIVE_MATRIX", "description": "مثال دمج جاهز رقم 7 — سلسلة أوامر تُستخدم معًا في طلب واحد.", "prompt": "/ADCONCEPT + /HOOKS + /CREATIVE_MATRIX"}, {"id": "v240", "lib": "visual", "category": "COMMAND CHAIN SYSTEM", "command": "نظام سلسلة الأوامر + قالب المتغيرات", "description": "اكتب سلسلة الأوامر أولاً ثم أضف قالب المتغيرات (REFERENCE, PRODUCT, CAMPAIGN...) في نفس الرسالة.", "prompt": "/METAADS\n/PRODUCTLOCK\n/LUXURY\n/PRODUCT_HERO\n/BLACKGOLD\n/TEXTSAFE\n/QC\n\nREFERENCE:\n[UPLOAD IMAGE]\n\nPRODUCT:\n[PRODUCT NAME]\n\nCAMPAIGN:\n[CAMPAIGN OBJECTIVE]\n\nAUDIENCE:\n[TARGET AUDIENCE]\n\nBRAND:\n[BRAND NAME]\n\nCOLORS:\n[BRAND COLORS]\n\nOFFER:\n[OFFER]\n\nPLATFORM:\n[PLATFORM]"}, {"id": "v241", "lib": "visual", "category": "MASTER AD TEMPLATE", "command": "قالب الإعلان الرئيسي الجاهز", "description": "القالب الأشمل لإنتاج إعلان تجاري كامل من مرجع منتج واحد — املأ الحقول ونفّذ.", "prompt": "/METAADS\n/PRODUCTLOCK\n/ARTDIRECTOR\n/PHOTOGRAPHER\n/PRODUCT_HERO\n/LUXURY\n/TEXTSAFE\n/QC\n\nREFERENCE:\n[PRODUCT IMAGE]\n\nBRAND:\n[BRAND]\n\nPRODUCT:\n[PRODUCT]\n\nTARGET:\n[TARGET AUDIENCE]\n\nOBJECTIVE:\n[SALES / AWARENESS / LEADS / LAUNCH]\n\nVISUAL IDEA:\n[CORE CONCEPT]\n\nENVIRONMENT:\n[SCENE]\n\nPALETTE:\n[COLORS]\n\nMOOD:\n[MOOD]\n\nFORMAT:\n[1:1 / 4:5 / 9:16 / 16:9]\n\nCreate a production-ready commercial advertising visual."}, {"id": "v242", "lib": "visual", "category": "MASTER PRODUCT PHOTOGRAPHY TEMPLATE", "command": "قالب تصوير المنتج الرئيسي", "description": "قالب متكامل لتصوير منتج احترافي واقعي بجودة تجارية.", "prompt": "/PRODUCT\n/PRODUCTLOCK\n/PHOTOGRAPHER\n/REALISM\n/QC\n\nREFERENCE:\n[UPLOAD PRODUCT]\n\nSUBJECT:\n[PRODUCT]\n\nSURFACE:\n[SURFACE]\n\nBACKGROUND:\n[BACKGROUND]\n\nCAMERA:\n[ANGLE]\n\nLENS:\n[LENS]\n\nLIGHT:\n[LIGHTING]\n\nMOOD:\n[MOOD]\n\nPALETTE:\n[PALETTE]\n\nOUTPUT:\n[FORMAT]\n\nCreate a realistic professional commercial product photograph."}, {"id": "v243", "lib": "visual", "category": "MASTER IMAGE-TO-VIDEO TEMPLATE", "command": "قالب تحويل الصورة إلى فيديو الرئيسي", "description": "قالب لتحويل صورة منتج إلى مقطع فيديو قصير مع الحفاظ على الهوية.", "prompt": "/VIDEO\n/PRODUCTLOCK\n/VIDEO_CINEMATIC\n/QC\n\nREFERENCE:\n[IMAGE]\n\nSUBJECT:\n[SUBJECT]\n\nCAMERA MOVEMENT:\n[PUSH-IN / ORBIT / PAN / TILT]\n\nSUBJECT MOVEMENT:\n[SUBTLE ACTION]\n\nENVIRONMENT:\n[ENVIRONMENT]\n\nLIGHTING:\n[LIGHT]\n\nDURATION:\n[DURATION]\n\nMOOD:\n[MOOD]\n\nThe subject must remain visually consistent throughout the sequence.\nAvoid morphing, geometry changes, logo changes, texture changes or identity drift."}, {"id": "v244", "lib": "visual", "category": "MASTER CREATIVE DIRECTOR TEMPLATE", "command": "قالب المخرج الإبداعي الرئيسي (/MASTER)", "description": "أشمل قالب — يجعل النموذج يحلل الهدف التجاري بنفسه ثم يقرر كل التفاصيل الإبداعية وينتج البرومبت النهائي.", "prompt": "/MASTER\n\nPROJECT:\n[PROJECT]\n\nBRAND:\n[BRAND]\n\nPRODUCT:\n[PRODUCT]\n\nAUDIENCE:\n[AUDIENCE]\n\nOBJECTIVE:\n[OBJECTIVE]\n\nPLATFORM:\n[PLATFORM]\n\nREFERENCE:\n[IMAGE]\n\nAnalyze the commercial objective first.\nThen determine the strongest:\n- visual concept\n- art direction\n- composition\n- camera angle\n- lens\n- lighting\n- environment\n- props\n- color palette\n- emotional tone\n- negative space\n- aspect ratio\n\nPreserve exact reference identity.\nDo not invent brand/product details.\nProduce a final production-ready prompt."}, {"id": "v245", "lib": "visual", "category": "PROJECT COMMAND EXAMPLE", "command": "مثال تطبيقي متكامل — إعلان عطر فاخر", "description": "مثال حقيقي يوضح كيف تُدمج عدة أوامر معًا في طلب واحد لإنتاج صورة إعلانية نهائية جاهزة للنشر.", "prompt": "/METAADS\n/PRODUCTLOCK\n/ARTDIRECTOR\n/PHOTOGRAPHER\n/PERFUME_AD\n/BLACKGOLD\n/MACRO\n/TEXTSAFE\n/REALISM\n/QC\n/PORTRAIT4X5\n\nREFERENCE:\n[UPLOAD PRODUCT PHOTO]\n\nBRAND:\n[BRAND NAME]\n\nPRODUCT:\n[LUXURY PERFUME]\n\nAUDIENCE:\n[PREMIUM CUSTOMERS]\n\nOBJECTIVE:\n[SALES]\n\nCONCEPT:\n[THE VISUAL IDEA]\n\nCreate the final production-ready commercial image."}]</script>
+<script type="application/json" id="bundleConfig">{"social": {"label": "تجميعة منشورات فيسبوك وانستقرام", "visual": ["SOCIAL MEDIA"], "marketing": ["2. مرحلة صياغة النصوص الإعلانية (Ad Copywriting & Messaging)"]}, "ads": {"label": "تجميعة الإعلانات", "visual": ["META ADS / إعلانات ميتا", "AD STRATEGY PROMPTS", "AD CREATIVE TESTING / A-B TEST", "CAMPAIGN CONCEPTS", "POSTER / BILLBOARD / PRINT"], "marketing": ["1. مرحلة الاستراتيجية وتحليل الجمهور المستهدف", "2. مرحلة صياغة النصوص الإعلانية (Ad Copywriting & Messaging)", "3. مرحلة التوجيه الإبداعي وتصميم الوسائط البصرية", "4. مرحلة إعداد وهندسة هيكل الحملات على منصة Meta (Campaign Architecture)", "5. مرحلة التحسين، اختبار A/B، وإدارة الميزانيات (Optimization & A/B Testing)", "6. مرحلة تحليل البيانات، التقارير، والذكاء التسويقي (Analytics & Reporting)"]}, "video": {"label": "تجميعة الفيديوهات", "visual": ["VIDEO / IMAGE-TO-VIDEO", "MASTER IMAGE-TO-VIDEO TEMPLATE"], "marketing": []}}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('promptData').textContent);
+const BUNDLES = JSON.parse(document.getElementById('bundleConfig').textContent);
+
+const searchInput = document.getElementById('searchInput');
+const resultsSection = document.getElementById('resultsSection');
+const cardsWrap = document.getElementById('cardsWrap');
+const chipsRow = document.getElementById('chipsRow');
+const resultCount = document.getElementById('resultCount');
+const toast = document.getElementById('toast');
+const bestBundle = document.getElementById('bestBundle');
+const bbTitle = document.getElementById('bbTitle');
+const bbSub = document.getElementById('bbSub');
+const bbSteps = document.getElementById('bbSteps');
+const bbCustomize = document.getElementById('bbCustomize');
+const bbFields = document.getElementById('bbFields');
+
+let currentItems = [];
+let bundleItems = [];
+let activeCat = 'الكل';
+let activeBundleKey = null;
+
+function norm(s){ return (s||'').toLowerCase(); }
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- smart search (synonyms + scoring) ---------- */
+const SYNONYMS = {
+  'عطر':'perfume fragrance bottle', 'عطور':'perfume fragrance',
+  'ساعة':'watch luxury jewelry', 'ساعات':'watch luxury',
+  'حذاء':'shoes fashion', 'احذية':'shoes fashion', 'أحذية':'shoes fashion',
+  'ملابس':'fashion clothing outfit', 'موضة':'fashion editorial lookbook',
+  'مجوهرات':'jewelry macro luxury', 'خاتم':'jewelry macro', 'اكسسوارات':'jewelry accessory',
+  'عقار':'real estate architecture interior exterior', 'عقارات':'real estate architecture',
+  'فيلا':'real estate interior exterior architecture', 'منزل':'interior architecture',
+  'مطعم':'food restaurant', 'اكل':'food', 'أكل':'food', 'طعام':'food hero top action',
+  'تقنية':'tech gadget minimal future', 'جوال':'tech gadget', 'موبايل':'tech gadget',
+  'الكتروني':'tech ecommerce', 'إلكتروني':'tech ecommerce',
+  'شعار':'logo identity icon minimal luxury', 'لوجو':'logo identity',
+  'هوية':'branding brand kit identity board', 'براند':'branding brand kit',
+  'فيديو':'video cinematic orbit rotate handheld ugc unboxing', 'مقطع':'video',
+  'انستقرام':'instagram social story reel', 'إنستقرام':'instagram social',
+  'انستغرام':'instagram social story reel', 'ستوري':'instagram story',
+  'تيك':'tiktok social', 'سوشيال':'social media', 'منشور':'social post instagram facebook',
+  'منشورات':'social post instagram facebook', 'فيسبوك':'facebook social',
+  'اعلان':'ad campaign meta advertising creative', 'إعلان':'ad campaign meta advertising creative',
+  'اعلانات':'ad campaign meta advertising creative', 'إعلانات':'ad campaign meta advertising creative',
+  'حملة':'campaign meta ads strategy audience budget',
+  'ميتا':'meta ads facebook instagram campaign',
+  'عرض':'offer promotional discount urgency', 'خصم':'offer discount promotional',
+  'قبل وبعد':'before after transformation', 'تحول':'transformation before after',
+  'فخم':'luxury premium editorial cinematic', 'راقي':'luxury premium editorial',
+  'بسيط':'minimal clean', 'مينيمال':'minimal clean',
+  'اضاءة':'lighting soft dramatic golden rim window', 'إضاءة':'lighting soft dramatic golden rim',
+  'خلفية':'background white dark gradient marble concrete wood',
+  'ابيض':'white background clean', 'أبيض':'white background clean',
+  'اسود':'black dark background', 'أسود':'black dark background',
+  'ذهبي':'gold blackgold luxury', 'ذهب':'gold blackgold',
+  'زاوية':'angle camera top low side back 360', 'زوايا':'angle camera multiview',
+  'موكاب':'mockup phone billboard packaging', 'مكيت':'mockup',
+  'تجربة':'testimonial ugc authentic customer', 'شهادة':'testimonial customer review',
+  'مشكلة':'problem agitation solution pas', 'حل':'solution problem',
+  'ميزانية':'budget scaling cbo abo', 'استهداف':'audience lookalike custom targeting',
+  'جمهور':'audience persona buyer targeting', 'منافس':'competitor gap analysis',
+  'منافسين':'competitor gap analysis market',
+  'تقرير':'report analytics dashboard executive kpi', 'اداء':'performance analytics dashboard kpi',
+  'أداء':'performance analytics dashboard kpi',
+  'اختبار':'testing ab hook variations', 'تحليل':'analytics dashboard diagnostics',
+  'كتالوج':'catalog ecommerce product', 'متجر':'ecommerce shopify amazon store',
+  'مكياج':'makeup beauty cosmetic', 'بشرة':'skincare beauty',
+  'تجميل':'beauty cosmetic skincare makeup',
+  'بوستر':'poster billboard flyer print', 'مطبوع':'print poster flyer a4',
+  'رمضان':'ramadan campaign seasonal', 'عيد':'eid campaign seasonal',
+  'فلات':'flatlay flat lay top view', 'علوي':'top view flatlay',
+  'ماكرو':'macro detail close up texture', 'تفاصيل':'detail macro texture',
+  'واقعي':'realism photoreal hyperreal quality', 'احترافي':'professional commercial premium',
+  'فيديوهات':'video cinematic orbit rotate handheld ugc unboxing',
+};
+const STOPWORDS = new Set(['في','من','إلى','الى','على','أن','ان','هذا','هذه','التي','الذي','مع','عن',
+  'كل','او','أو','ثم','قد','لا','ما','هل','كان','يكون','لي','لنا','له','لها','و','the','a','an','and',
+  'for','with','of','to','in','on','is','are','be','create','make','use']);
+
+function tokenize(q){
+  let text = ' ' + q + ' ';
+  Object.keys(SYNONYMS).forEach(ar => { if(q.includes(ar)) text += ' ' + SYNONYMS[ar]; });
+  return text.toLowerCase()
+    .replace(/[\/\-_,.:؛،؟!()«»"']/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length >= 2 && !STOPWORDS.has(w));
+}
+
+const INDEX = DATA.map(d => ({
+  item:d,
+  catW:norm(d.category), cmdW:norm(d.command), descW:norm(d.description), promptW:norm(d.prompt)
+}));
+
+function scoreEntry(e, terms){
+  let score = 0;
+  terms.forEach(t => {
+    if(e.catW.includes(t)) score += 3;
+    if(e.cmdW.includes(t)) score += 3;
+    if(e.descW.includes(t)) score += 2;
+    if(e.promptW.includes(t)) score += 1;
+  });
+  return score;
+}
+
+function smartSearch(query){
+  const terms = [...new Set(tokenize(query))];
+  if(terms.length === 0) return [];
+  return INDEX.map(e => ({ item:e.item, score: scoreEntry(e, terms) }))
+    .filter(s => s.score > 0)
+    .sort((a,b) => b.score - a.score)
+    .map(s => s.item);
+}
+
+/* ---------- best bundle + on-site customization ---------- */
+function pickBestBundle(items, limit){
+  limit = limit || 6;
+  if(items.length <= limit) return items.slice();
+  const byCat = {}; const order = [];
+  items.forEach(it => {
+    if(!byCat[it.category]){ byCat[it.category] = []; order.push(it.category); }
+    byCat[it.category].push(it);
+  });
+  const result = []; let idx = 0;
+  while(result.length < limit){
+    let addedAny = false;
+    for(const cat of order){
+      if(byCat[cat][idx]){ result.push(byCat[cat][idx]); addedAny = true; if(result.length >= limit) break; }
+    }
+    if(!addedAny) break;
+    idx++;
+  }
+  return result;
+}
+
+function collectPlaceholders(items){
+  const set = new Set();
+  const re = /\[([^\[\]]{2,60})\]/g;
+  items.forEach(it => {
+    let m;
+    while((m = re.exec(it.prompt))) set.add(m[1].trim());
+  });
+  return [...set];
+}
+
+function fieldKey(ph){ return 'f_' + ph.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_'); }
+
+function renderBestBundle(items, label){
+  bundleItems = pickBestBundle(items, 6);
+  bbTitle.textContent = label;
+  bbSub.textContent = 'مبنية على ' + items.length + ' أمرًا مطابقًا — هذا أدق تسلسل للوصول للنتيجة';
+
+  bbSteps.innerHTML = bundleItems.map((d, i) => `
+    <div class="bb-step">
+      <span class="bb-num">${i+1}.</span>
+      <span class="bb-cmd">${escapeHtml(d.command)}</span>
+      <span class="bb-cat">— ${escapeHtml(d.category)}</span>
+    </div>`).join('');
+
+  const GENERIC_FIELDS = ['اسم المنتج أو الخدمة', 'المنصة المستهدفة (فيسبوك / انستقرام / تيك توك)', 'اللون أو الإحساس المطلوب', 'الجمهور المستهدف'];
+  const placeholders = collectPlaceholders(bundleItems);
+
+  let fieldsHtml = GENERIC_FIELDS.map(ph => `
+      <div class="bb-field">
+        <label for="${fieldKey(ph)}">${escapeHtml(ph)}</label>
+        <input type="text" id="${fieldKey(ph)}" data-generic="${ph.replace(/"/g,'&quot;')}" placeholder="اكتب هنا...">
+      </div>`).join('');
+
+  if(placeholders.length > 0){
+    fieldsHtml += `<div style="grid-column:1/-1;font-size:12px;color:var(--muted);margin:4px 0 -2px;">تخصيص مباشر داخل نص الأوامر:</div>`;
+    fieldsHtml += placeholders.map(ph => `
+      <div class="bb-field">
+        <label for="${fieldKey(ph)}">${escapeHtml(ph)}</label>
+        <input type="text" id="${fieldKey(ph)}" data-placeholder="${ph.replace(/"/g,'&quot;')}" placeholder="اكتب هنا...">
+      </div>`).join('');
+  }
+
+  bbFields.innerHTML = fieldsHtml;
+  bbCustomize.classList.add('show');
+  bestBundle.classList.add('show');
+}
+
+function buildBundleText(){
+  const genericInputs = bbFields.querySelectorAll('input[data-generic]');
+  const placeholderInputs = bbFields.querySelectorAll('input[data-placeholder]');
+
+  const contextLines = [];
+  genericInputs.forEach(inp => {
+    const val = inp.value.trim();
+    if(val) contextLines.push('- ' + inp.dataset.generic + ': ' + val);
+  });
+
+  const fillMap = {};
+  placeholderInputs.forEach(inp => {
+    const val = inp.value.trim();
+    if(val) fillMap[inp.dataset.placeholder] = val;
+  });
+
+  const contextHeader = contextLines.length
+    ? 'معلومات المشروع (طبّق هذا السياق على كل الأوامر أدناه):\n' + contextLines.join('\n') + '\n\n==========\n\n'
+    : '';
+
+  const body = bundleItems.map((d, i) => {
+    let text = d.prompt;
+    Object.keys(fillMap).forEach(ph => {
+      const safe = ph.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      text = text.replace(new RegExp('\\[' + safe + '\\]', 'g'), fillMap[ph]);
+    });
+    return `# ${i+1}. ${d.command} (${d.category})\n${text}`;
+  }).join('\n\n----------\n\n');
+
+  return contextHeader + body;
+}
+
+/* ---------- rendering ---------- */
+function categoriesOf(items){
+  const cats = [];
+  items.forEach(d => { if(!cats.includes(d.category)) cats.push(d.category); });
+  return cats;
+}
+
+function renderChips(items){
+  const cats = categoriesOf(items);
+  if(cats.length <= 1){ chipsRow.innerHTML = ''; return; }
+  let html = `<button class="chip ${activeCat==='الكل'?'active':''}" data-chip="الكل">الكل</button>`;
+  cats.forEach(c => {
+    html += `<button class="chip ${activeCat===c?'active':''}" data-chip="${c.replace(/"/g,'&quot;')}">${c}</button>`;
+  });
+  chipsRow.innerHTML = html;
+  chipsRow.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => { activeCat = btn.dataset.chip; renderAll(); });
+  });
+}
+
+function renderCards(items, flashId){
+  let shown = items;
+  if(activeCat !== 'الكل') shown = shown.filter(d => d.category === activeCat);
+
+  resultCount.textContent = 'كل النتائج المطابقة — ' + shown.length + ' نتيجة';
+
+  if(shown.length === 0){
+    cardsWrap.innerHTML = '<div class="empty">لا توجد نتائج مطابقة.</div>';
+    return;
+  }
+
+  cardsWrap.innerHTML = shown.map(d => {
+    const isCmd = d.command.trim().startsWith('/');
+    return `
+    <article class="card" id="card-${d.id}">
+      <div class="card-top"><span class="card-cat">${escapeHtml(d.category)}</span></div>
+      <h3 class="${isCmd?'is-cmd':''}">${escapeHtml(d.command)}</h3>
+      ${d.description ? `<div class="desc">${escapeHtml(d.description)}</div>` : ''}
+      <pre>${escapeHtml(d.prompt)}</pre>
+      <div class="card-actions">
+        <button class="btn primary" data-copy="${d.id}">نسخ الأمر</button>
+        <button class="btn" data-claude="${d.id}">افتح مع Claude</button>
+      </div>
+    </article>`;
+  }).join('');
+
+  cardsWrap.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = DATA.find(d => d.id === btn.dataset.copy);
+      copyText(item.prompt); showToast('تم نسخ الأمر ✓');
+    });
+  });
+  cardsWrap.querySelectorAll('[data-claude]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = DATA.find(d => d.id === btn.dataset.claude);
+      copyText(item.prompt);
+      showToast('تم نسخ الأمر — الصقه في محادثة Claude الجديدة');
+      window.open('https://claude.ai/new', '_blank');
+    });
+  });
+
+  if(flashId){
+    const el = document.getElementById('card-' + flashId);
+    if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),2200); }
+  }
+}
+
+function renderAll(flashId){
+  renderChips(currentItems);
+  renderCards(currentItems, flashId);
+}
+
+function showResults(items, label){
+  currentItems = items;
+  activeCat = 'الكل';
+  resultsSection.classList.add('show');
+  if(items.length > 0){
+    renderBestBundle(items, label);
+  } else {
+    bestBundle.classList.remove('show');
+  }
+  renderAll();
+}
+
+function hideResults(){
+  resultsSection.classList.remove('show');
+  bestBundle.classList.remove('show');
+  currentItems = [];
+  bundleItems = [];
+  activeBundleKey = null;
+  document.querySelectorAll('.bundle-btn').forEach(b => b.classList.remove('active'));
+}
+
+function copyText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  } else { fallbackCopy(text); }
+}
+function fallbackCopy(text){
+  const ta = document.createElement('textarea');
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch(e){}
+  document.body.removeChild(ta);
+}
+let toastTimer;
+function showToast(msg){
+  toast.textContent = msg; toast.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+/* ---------- events ---------- */
+searchInput.addEventListener('input', (e) => {
+  const q = e.target.value.trim();
+  document.querySelectorAll('.bundle-btn').forEach(b => b.classList.remove('active'));
+  activeBundleKey = null;
+  if(!q){ hideResults(); return; }
+  const results = smartSearch(q);
+  const label = 'أفضل تجميعة لتحقيق: «' + (q.length > 60 ? q.slice(0,60) + '…' : q) + '»';
+  showResults(results, label);
+});
+
+document.querySelectorAll('.bundle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.bundle;
+    if(activeBundleKey === key){ hideResults(); searchInput.value=''; return; }
+    document.querySelectorAll('.bundle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeBundleKey = key;
+    searchInput.value = '';
+    const cfg = BUNDLES[key];
+    const items = DATA.filter(d =>
+      (d.lib === 'visual' && cfg.visual.includes(d.category)) ||
+      (d.lib === 'marketing' && cfg.marketing.includes(d.category))
+    );
+    showResults(items, 'أفضل تجميعة لـ ' + cfg.label);
+    resultsSection.scrollIntoView({behavior:'smooth'});
+  });
+});
+
+document.getElementById('bbCopyBtn').addEventListener('click', () => {
+  copyText(buildBundleText());
+  showToast('تم نسخ التركيبة ✓');
+});
+document.getElementById('bbClaudeBtn').addEventListener('click', () => {
+  copyText(buildBundleText());
+  showToast('تم نسخ التركيبة — الصقها في محادثة Claude الجديدة');
+  window.open('https://claude.ai/new', '_blank');
+});
+
+/* ---------- black smoke background ---------- */
+(function(){
+  const canvas = document.getElementById('smokeCanvas');
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W, H, DPR;
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  if(reduceMotion){
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, W, H);
+    return;
+  }
+
+  function makeParticle(spawnBottom){
+    const r = 90 + Math.random() * 160;
+    return {
+      x: Math.random() * W,
+      y: spawnBottom ? H + r * 0.6 : Math.random() * H,
+      r: r,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: -(0.12 + Math.random() * 0.22),
+      alpha: 0.05 + Math.random() * 0.09,
+      growth: 0.05 + Math.random() * 0.08,
+      sway: Math.random() * Math.PI * 2,
+      swaySpeed: 0.002 + Math.random() * 0.003
+    };
+  }
+
+  const COUNT = 22;
+  const particles = [];
+  for(let i = 0; i < COUNT; i++) particles.push(makeParticle(false));
+
+  function tick(){
+    ctx.fillStyle = 'rgba(255,255,255,0.045)';
+    ctx.fillRect(0, 0, W, H);
+
+    particles.forEach(p => {
+      p.sway += p.swaySpeed;
+      p.x += p.vx + Math.sin(p.sway) * 0.25;
+      p.y += p.vy;
+      p.r += p.growth;
+      p.alpha *= 0.9985;
+
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+      grad.addColorStop(0, `rgba(10,10,10,${p.alpha})`);
+      grad.addColorStop(1, 'rgba(10,10,10,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      if(p.y + p.r < -50 || p.alpha < 0.004){
+        Object.assign(p, makeParticle(true));
+      }
+    });
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
